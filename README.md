@@ -9,7 +9,7 @@ or get the [CI build](http://vsixgallery.com/extension/CommentTranslator.tannt.2
 
 ---------------------------------------
 
-Empty VSIX Project.
+Extension of visual studio that automatic translate comment in you open file.
 
 See the [change log](CHANGELOG.md) for changes and road map.
 
