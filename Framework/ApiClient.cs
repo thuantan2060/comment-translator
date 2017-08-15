@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -7,7 +9,7 @@ namespace Framework
 {
     public abstract class ApiClient
     {
-        protected virtual async Task<IAPIResponse> Request(IApiRequest request)
+        protected virtual async Task<IAPIResponse> Execute(IApiRequest request)
         {
             //Create empty result
             var apiResult = new ApiResponse();
@@ -36,6 +38,21 @@ namespace Framework
                 {
                     var response = await client.SendAsync(httpRequest);
                     var responseText = await response.Content.ReadAsStringAsync();
+
+
+                    if (response.Headers.TryGetValues("from-language", out IEnumerable<string> fromLanguages))
+                    {
+                        apiResult.Tags.Add("from-language", fromLanguages.FirstOrDefault());
+                    }
+                    if (response.Headers.TryGetValues("to-language", out IEnumerable<string> toLanguages))
+                    {
+                        apiResult.Tags.Add("to-language", toLanguages.FirstOrDefault());
+                    }
+
+                    if (response.Headers.TryGetValues("translate-success", out IEnumerable<string> translateSuccesses))
+                    {
+                        apiResult.Tags.Add("translate-success", translateSuccesses.FirstOrDefault() == "true");
+                    }
 
                     apiResult.Code = (int)response.StatusCode;
                     apiResult.Message = response.StatusCode.ToString();

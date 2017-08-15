@@ -1,22 +1,17 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="TranslateCommandPackage.cs" company="Company">
+// <copyright file="CommentTranslatorPackage.cs" company="Company">
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
+using CommentTranlsator.Client;
+using CommentTranslator.Option;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.Win32;
 
-namespace CommentTranslator.Command
+namespace CommentTranslator
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -38,19 +33,22 @@ namespace CommentTranslator.Command
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(TranslateCommandPackage.PackageGuidString)]
+    [Guid(CommentTranslatorPackage.PackageGuidString)]
+    [ProvideOptionPage(typeof(OptionPageGrid), "Comment Translator", "General", 0, 0, true)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class TranslateCommandPackage : Package
+    public sealed class CommentTranslatorPackage : Package
     {
         /// <summary>
-        /// TranslateCommandPackage GUID string.
+        /// CommentTranslatorPackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "307a3d04-8453-4fc7-a06f-48b7a504196a";
+        public const string PackageGuidString = "2e2206c4-ab10-44d9-a016-aedfe6a8975f";
+        public static Settings Settings = new Settings();
+        public static TranslateClient TranslateClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslateCommand"/> class.
         /// </summary>
-        public TranslateCommandPackage()
+        public CommentTranslatorPackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but
@@ -68,6 +66,12 @@ namespace CommentTranslator.Command
         {
             TranslateCommand.Initialize(this);
             base.Initialize();
+
+            //Load settting
+            Settings.ReloadSetting((OptionPageGrid)GetDialogPage(typeof(OptionPageGrid)));
+
+            //Create client
+            TranslateClient = new TranslateClient(Settings);
         }
 
         #endregion

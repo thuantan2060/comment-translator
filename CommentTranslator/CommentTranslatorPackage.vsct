@@ -22,7 +22,7 @@
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidTranslateCommandPackage">
+  <Commands package="guidCommentTranslatorPackage">
     <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
@@ -36,7 +36,7 @@
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
     <Groups>
-      <Group guid="guidTranslateCommandPackageCmdSet" id="TranslateCommandContextMenu" priority="0x0600">
+      <Group guid="guidCommentTranslatorPackageCmdSet" id="MyMenuGroup" priority="0x0200">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
       </Group>
     </Groups>
@@ -52,8 +52,8 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidTranslateCommandPackageCmdSet" id="TranslateCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidTranslateCommandPackageCmdSet" id="TranslateCommandContextMenu" />
+      <Button guid="guidCommentTranslatorPackageCmdSet" id="CommentTranslatorId" priority="0x0100" type="Button">
+        <Parent guid="guidCommentTranslatorPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Translate</ButtonText>
@@ -68,21 +68,21 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\TranslateCommand.png" usedList="bmpPic1"/>
+      <Bitmap guid="guidImages" href="Resources\translate.png" usedList="bmpPic1"/>
     </Bitmaps>
   </Commands>
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidTranslateCommandPackage" value="{307a3d04-8453-4fc7-a06f-48b7a504196a}" />
+    <GuidSymbol name="guidCommentTranslatorPackage" value="{2e2206c4-ab10-44d9-a016-aedfe6a8975f}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidTranslateCommandPackageCmdSet" value="{890bd166-2cb8-49fb-8207-9b0a9e3efb20}">
+    <GuidSymbol name="guidCommentTranslatorPackageCmdSet" value="{284ee4d1-edc6-4ed0-bf84-d45aeebf593c}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="TranslateCommandId" value="0x0100" />
+      <IDSymbol name="CommentTranslatorId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{9fd14f1a-5d08-4be2-af67-f50c4010c3bb}" >
+    <GuidSymbol name="guidImages" value="{7739b59e-19f6-420e-8597-8af69c377a6a}" >
       <IDSymbol name="bmpPic1" value="1" />
     </GuidSymbol>
   </Symbols>

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using CommentTranslator.Option;
+using CommentTranslator.Common;
 using Framework;
 
 namespace CommentTranlsator.Client

@@ -1,5 +1,5 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="CommentTranslator.cs" company="Company">
+// <copyright file="TranslateCommand.cs" company="Company">
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace CommentTranslator
+namespace CommentTranslator.Command
 {
     /// <summary>
     /// Command handler
@@ -26,7 +26,7 @@ namespace CommentTranslator
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("284ee4d1-edc6-4ed0-bf84-d45aeebf593c");
+        public static readonly Guid CommandSet = new Guid("890bd166-2cb8-49fb-8207-9b0a9e3efb20");
 
         /// <summary>
         /// VS Package that provides this command, not null.
