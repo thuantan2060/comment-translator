@@ -4,10 +4,10 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using System;
+using System.ComponentModel.Composition;
 
 namespace CommentTranslator.Presentation
 {
@@ -16,7 +16,7 @@ namespace CommentTranslator.Presentation
     /// that instantiates the adornment on the event of a <see cref="IWpfTextView"/>'s creation
     /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
-    [ContentType("text")]
+    [ContentType("Text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class TranslateAdornmentConnectior : IWpfTextViewCreationListener
     {
@@ -63,6 +63,5 @@ namespace CommentTranslator.Presentation
 
             adorment.AddTranslate(view.Selection.SelectedSpans[0], text);
         }
-
     }
 }
