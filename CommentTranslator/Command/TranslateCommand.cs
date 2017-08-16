@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -92,24 +93,34 @@ namespace CommentTranslator
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
-        private async void MenuItemCallback(object sender, EventArgs e)
+        private void MenuItemCallback(object sender, EventArgs e)
         {
             var dte = (DTE2)ServiceProvider.GetService(typeof(DTE));
 
             if (dte.ActiveDocument != null)
             {
                 var selection = (TextSelection)dte.ActiveDocument.Selection;
-                var translateResult = await CommentTranslatorPackage.TranslateClient.Translate(selection.Text);
 
-                if (translateResult.Code == 200 && (bool)translateResult.Tags["translate-success"])
-                {
-                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, translateResult.Data, "Translate", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                }
-                else
-                {
-                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, translateResult.Message, "Translate Error", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-
-                }
+                System.Threading.Tasks.Task
+                    .Run(() => CommentTranslatorPackage.TranslateClient.Translate(selection.Text))
+                    .ContinueWith((data) =>
+                    {
+                        if (!data.IsFaulted)
+                        {
+                            if (data.Result.Code == 200 && (bool)data.Result.Tags["translate-success"])
+                            {
+                                VsShellUtilities.ShowMessageBox(this.ServiceProvider, data.Result.Data, "Translate", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                            }
+                            else
+                            {
+                                VsShellUtilities.ShowMessageBox(this.ServiceProvider, data.Result.Message, "Translate Error", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                            }
+                        }
+                        else
+                        {
+                            VsShellUtilities.ShowMessageBox(this.ServiceProvider, data.Exception.Message, "Translate Error", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                        }
+                    }, TaskScheduler.FromCurrentSynchronizationContext());
             }
         }
     }
