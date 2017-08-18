@@ -58,11 +58,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Option\Settings.cs" />
-    <Compile Include="Presentation\TranslateAdornment.cs" />
-    <Compile Include="Presentation\TranslateAdornmentConnectior.cs" />
     <Compile Include="Presentation\TranslatePopup.xaml.cs">
       <DependentUpon>TranslatePopup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Presentation\TransplatePopupAdornment.cs" />
+    <Compile Include="Presentation\TransplatePopupAdornmentTextViewCreationListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\VsOutputLogger.cs" />
   </ItemGroup>

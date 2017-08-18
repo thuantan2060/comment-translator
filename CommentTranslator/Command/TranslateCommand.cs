@@ -8,6 +8,8 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.ComponentModel.Design;
 using System.Threading.Tasks;
@@ -96,6 +98,11 @@ namespace CommentTranslator
         private void MenuItemCallback(object sender, EventArgs e)
         {
             var dte = (DTE2)ServiceProvider.GetService(typeof(DTE));
+            var textManager = (IVsTextManager)ServiceProvider.GetService(typeof(SVsTextManager));
+
+            textManager.GetActiveView(1, null, out IVsTextView textViewCurrent);
+
+            
 
             if (dte.ActiveDocument != null)
             {
@@ -132,6 +139,24 @@ namespace CommentTranslator
                         }, TaskScheduler.FromCurrentSynchronizationContext());
                 }
             }
+        }
+
+        private IWpfTextView GetWpfTextView(IVsTextView vTextView)
+        {
+            IWpfTextView view = null;
+            IVsUserData userData = vTextView as IVsUserData;
+
+            if (null != userData)
+            {
+                IWpfTextViewHost viewHost;
+                object holder;
+                Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
+                userData.get(ref guidViewHost, out holder);
+                viewHost = (IWpfTextViewHost)holder;
+                view = viewHost.TextView;
+            }
+
+            return view;
         }
     }
 }

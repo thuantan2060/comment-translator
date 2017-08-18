@@ -40,19 +40,19 @@ namespace Framework
                     var responseText = await response.Content.ReadAsStringAsync();
 
 
-                    if (response.Headers.TryGetValues("from-language", out IEnumerable<string> fromLanguages))
-                    {
-                        apiResult.Tags.Add("from-language", fromLanguages.FirstOrDefault());
-                    }
-                    if (response.Headers.TryGetValues("to-language", out IEnumerable<string> toLanguages))
-                    {
-                        apiResult.Tags.Add("to-language", toLanguages.FirstOrDefault());
-                    }
+                    //if (response.Headers.TryGetValues("from-language", out IEnumerable<string> fromLanguages))
+                    //{
+                    //    apiResult.Tags.Add("from-language", fromLanguages.FirstOrDefault());
+                    //}
+                    //if (response.Headers.TryGetValues("to-language", out IEnumerable<string> toLanguages))
+                    //{
+                    //    apiResult.Tags.Add("to-language", toLanguages.FirstOrDefault());
+                    //}
 
-                    if (response.Headers.TryGetValues("translate-success", out IEnumerable<string> translateSuccesses))
-                    {
-                        apiResult.Tags.Add("translate-success", translateSuccesses.FirstOrDefault() == "true");
-                    }
+                    //if (response.Headers.TryGetValues("translate-success", out IEnumerable<string> translateSuccesses))
+                    //{
+                    //    apiResult.Tags.Add("translate-success", translateSuccesses.FirstOrDefault() == "true");
+                    //}
 
                     apiResult.Code = (int)response.StatusCode;
                     apiResult.Message = response.StatusCode.ToString();
