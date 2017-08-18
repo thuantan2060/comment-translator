@@ -140,23 +140,5 @@ namespace CommentTranslator
                 }
             }
         }
-
-        private IWpfTextView GetWpfTextView(IVsTextView vTextView)
-        {
-            IWpfTextView view = null;
-            IVsUserData userData = vTextView as IVsUserData;
-
-            if (null != userData)
-            {
-                IWpfTextViewHost viewHost;
-                object holder;
-                Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
-                userData.get(ref guidViewHost, out holder);
-                viewHost = (IWpfTextViewHost)holder;
-                view = viewHost.TextView;
-            }
-
-            return view;
-        }
     }
 }
