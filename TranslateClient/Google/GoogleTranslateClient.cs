@@ -138,7 +138,7 @@ namespace TranslateClient.Google
             return translateResult;
         }
 
-        private async GoogleToken GetToken()
+        private async Task<GoogleToken> GetToken()
         {
             var response = await Execute(new ApiRequest()
             {
@@ -165,6 +165,7 @@ namespace TranslateClient.Google
             var getTokenJs = match.Value;
 
             //TODO run javascript
+            return new GoogleToken("");
         }
     }
 }
