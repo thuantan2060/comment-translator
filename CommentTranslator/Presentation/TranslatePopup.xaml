@@ -8,6 +8,8 @@
              IsHitTestVisible="True"
              TextOptions.TextFormattingMode="Display"
              UseLayoutRounding="True"
+             MinWidth="120"
+             Focusable="True"
              Initialized="UserControl_Initialized">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -30,31 +32,34 @@
             </Grid.RowDefinitions>
 
             <!--header-->
-            <Grid MinHeight="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="1" Name="tblDirection" Text="Translating..." Padding="3,2,2,0"
-                           TextTrimming="WordEllipsis" FontWeight="Bold" />
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Name="cmdClose" VerticalAlignment="Center"
-                            Click="CmdClose_Click" ToolTip="Close">
-                        <Path
+            <Border BorderThickness="0 0 0 1">
+                <Grid MinHeight="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Name="tblDirection" Text="Translating..." Padding="3,0,2,3"
+                           TextTrimming="WordEllipsis" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Name="cmdClose" VerticalAlignment="Bottom"
+                            Click="CmdClose_Click" ToolTip="Close" Margin="2,0,2,2">
+                            <Path
                             Data="F1M54.0573,47.8776L38.1771,31.9974 54.0547,16.1198C55.7604,14.4141 55.7604,11.6511 54.0573,9.94531 52.3516,8.23962 49.5859,8.23962 47.8802,9.94531L32.0026,25.8229 16.1224,9.94531C14.4167,8.23962 11.6511,8.23962 9.94794,9.94531 8.24219,11.6511 8.24219,14.4141 9.94794,16.1198L25.8255,32 9.94794,47.8776C8.24219,49.5834 8.24219,52.3477 9.94794,54.0534 11.6511,55.7572 14.4167,55.7585 16.1224,54.0534L32.0026,38.1745 47.8802,54.0534C49.5859,55.7585 52.3516,55.7572 54.0573,54.0534 55.7604,52.3477 55.763,49.5834 54.0573,47.8776z"
                             Stretch="Uniform" Width="10" Height="10" />
-                    </Button>
-                </StackPanel>
-            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
             <!--error-->
             <Grid Grid.Row="1">
-                <TextBlock x:Name="tblError" Visibility="Collapsed" Padding="3,5" 
-                           Foreground="Firebrick" TextTrimming="None" TextWrapping="Wrap"/>
+                <TextBlock x:Name="tblError" Visibility="Collapsed" Padding="3 5" Foreground="Firebrick" TextTrimming="None" TextWrapping="Wrap"/>
             </Grid>
 
             <!--results-->
-            <TextBlock x:Name="tblTranslatedText" Grid.Row="2" HorizontalAlignment="Stretch" MaxHeight="600" Margin="-1,0,-1,-1" Cursor="IBeam" TextWrapping="Wrap"/>
+            <Border x:Name="bdTranslatedText" Grid.Row="2" Padding="4 0 4 2">
+                <TextBlock x:Name="tblTranslatedText"  HorizontalAlignment="Stretch" MaxHeight="600" Margin="-1,0,-1,-1" Cursor="IBeam" TextWrapping="Wrap" Text="This is translated text"/>
+            </Border>
         </Grid>
     </Border>
 </UserControl>

@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Text.Editor;
+﻿using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using System;
+using System.ComponentModel.Composition;
 
 namespace CommentTranslator.Presentation
 {
@@ -11,7 +12,7 @@ namespace CommentTranslator.Presentation
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TransplatePopupAdornmentTextViewCreationListener : IWpfTextViewCreationListener
+    internal sealed class TranslatePopupConnector : IWpfTextViewCreationListener
     {
         // Disable "Field is never assigned to..." and "Field is never used" compiler's warnings. Justification: the field is used by MEF.
 #pragma warning disable 649, 169
@@ -33,8 +34,31 @@ namespace CommentTranslator.Presentation
         /// <param name="textView">The <see cref="IWpfTextView"/> upon which the adornment should be placed</param>
         public void TextViewCreated(IWpfTextView textView)
         {
-            // The adorment will get wired to the text view events
-            new TransplatePopupAdornment(textView);
+            TranslatePopupAdornment.Create(textView);
+        }
+
+        /// <summary>
+        /// Translates the specified text.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="text">The text.</param>
+        public static void Translate(IWpfTextView view, string text)
+        {
+            TranslatePopupAdornment adornment = null;
+
+            try
+            {
+                adornment = view.Properties.GetProperty<TranslatePopupAdornment>(typeof(TranslatePopupAdornment));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            if (adornment != null)
+            {
+                adornment.Translate(view.Selection.SelectedSpans[0], text);
+            }
         }
     }
 }

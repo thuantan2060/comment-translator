@@ -4,15 +4,17 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using CommentTranslator.Presentation;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.ComponentModel.Design;
-using System.Threading.Tasks;
 
 namespace CommentTranslator
 {
@@ -98,11 +100,6 @@ namespace CommentTranslator
         private void MenuItemCallback(object sender, EventArgs e)
         {
             var dte = (DTE2)ServiceProvider.GetService(typeof(DTE));
-            var textManager = (IVsTextManager)ServiceProvider.GetService(typeof(SVsTextManager));
-
-            textManager.GetActiveView(1, null, out IVsTextView textViewCurrent);
-
-            
 
             if (dte.ActiveDocument != null)
             {
@@ -114,31 +111,24 @@ namespace CommentTranslator
                     selection.SelectLine();
                 }
 
+                var selectedText = selection.Text.Trim();
+
                 //Check if selection text is still empty
-                if (!string.IsNullOrEmpty(selection.Text))
+                if (!string.IsNullOrEmpty(selectedText))
                 {
-                    System.Threading.Tasks.Task
-                        .Run(() => CommentTranslatorPackage.TranslateClient.Translate(selection.Text))
-                        .ContinueWith((data) =>
-                        {
-                            if (!data.IsFaulted)
-                            {
-                                if (data.Result.Code == 200 && (bool)data.Result.Tags["translate-success"])
-                                {
-                                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, data.Result.Data, "Translate", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                                }
-                                else
-                                {
-                                    VsShellUtilities.ShowMessageBox(this.ServiceProvider, data.Result.Message, "Translate Error", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                                }
-                            }
-                            else
-                            {
-                                VsShellUtilities.ShowMessageBox(this.ServiceProvider, data.Exception.Message, "Translate Error", OLEMSGICON.OLEMSGICON_INFO, OLEMSGBUTTON.OLEMSGBUTTON_OK, OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-                            }
-                        }, TaskScheduler.FromCurrentSynchronizationContext());
+                    TranslatePopupConnector.Translate(GetWpfView(), selectedText);
                 }
             }
+        }
+
+        private IWpfTextView GetWpfView()
+        {
+            var textManager = (IVsTextManager)ServiceProvider.GetService(typeof(SVsTextManager));
+            var componentModel = (IComponentModel)this.ServiceProvider.GetService(typeof(SComponentModel));
+            var editor = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+
+            textManager.GetActiveView(1, null, out IVsTextView textViewCurrent);
+            return editor.GetWpfTextView(textViewCurrent);
         }
     }
 }
