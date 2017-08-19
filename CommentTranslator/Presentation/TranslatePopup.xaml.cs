@@ -25,6 +25,7 @@ namespace CommentTranslator.Presentation
             Text = text;
 
             InitializeComponent();
+
         }
 
         #endregion

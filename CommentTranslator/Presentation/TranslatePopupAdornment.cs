@@ -4,6 +4,7 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text;
 using System.Windows;
+using System.Windows.Input;
 
 namespace CommentTranslator.Presentation
 {
@@ -67,6 +68,30 @@ namespace CommentTranslator.Presentation
 
             //Focus
             _popup.Focus();
+        }
+
+        public bool HandleMouseLeftButton(MouseButtonEventArgs e)
+        {
+            if (_popup == null) return false;
+
+            if (e.Source is TranslatePopup translatePopup)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool HandleMouseRightButton(MouseButtonEventArgs e)
+        {
+            if (_popup == null) return false;
+
+            if (e.Source is TranslatePopup translatePopup)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
