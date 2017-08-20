@@ -30,8 +30,9 @@ namespace CommentTranslator.Presentation
             this._layer = view.GetAdornmentLayer("TransplatePopupAdornment");
             this._buffer = _view.TextBuffer;
 
+            this._view.Selection.SelectionChanged += this.OnSelectionChanged;
             this._view.LayoutChanged += this.OnLayoutChanged;
-            this._view.Closed += Closed;
+            this._view.Closed += OnClosed;
         }
 
         /// <summary>
@@ -158,12 +159,9 @@ namespace CommentTranslator.Presentation
         /// <param name="sender">The sender.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         /// <exception cref="NotImplementedException"></exception>
-        private void Closed(object sender, EventArgs e)
+        private void OnClosed(object sender, EventArgs e)
         {
-            if (_popup != null)
-            {
-                _popup.Close();
-            }
+            _popup?.Close();
         }
 
         /// <summary>
@@ -173,6 +171,11 @@ namespace CommentTranslator.Presentation
         /// <param name="e">Event arguments</param>
         private void OnLayoutChanged(object sender, EventArgs e)
         {
+        }
+
+        private void OnSelectionChanged(object sender, EventArgs e)
+        {
+            _popup?.Close();
         }
     }
 }

@@ -52,7 +52,7 @@ namespace CommentTranslator.Presentation
 
         private void Translate(string text)
         {
-            tblError.Visibility = Visibility.Collapsed;
+            bdError.Visibility = Visibility.Collapsed;
             bdTranslatedText.Visibility = Visibility.Collapsed;
             tblDirection.Text = "Translating...";
 
@@ -74,14 +74,14 @@ namespace CommentTranslator.Presentation
                             {
                                 tblDirection.Text = "Translate Error";
                                 tblError.Text = data.Result.Message;
-                                tblError.Visibility = Visibility.Visible;
+                                bdError.Visibility = Visibility.Visible;
                             }
                         }
                         else
                         {
                             tblDirection.Text = "Translate Error";
                             tblError.Text = data.Exception.Message;
-                            tblError.Visibility = Visibility.Visible;
+                            bdError.Visibility = Visibility.Visible;
                         }
                     }
                 }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -117,9 +117,25 @@ namespace CommentTranslator.Presentation
             Translate(Text);
         }
 
-        private void CmdClose_Click(object sender, RoutedEventArgs e)
+        private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void btnCopy_Click(object sender, RoutedEventArgs e)
+        {
+            if (tblTranslatedText.Visibility == Visibility.Visible)
+            {
+                Clipboard.SetText(tblTranslatedText.Text);
+            }else
+            {
+                Clipboard.SetText(tblError.Text);
+            }
+        }
+
+        private void TranslatedText_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            btnCopy_Click(sender, e);
         }
 
         #endregion

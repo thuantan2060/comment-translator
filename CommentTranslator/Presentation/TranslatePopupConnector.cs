@@ -24,6 +24,11 @@ namespace CommentTranslator.Presentation
         [Export(typeof(AdornmentLayerDefinition))]
         [Name("TransplatePopupAdornment")]
         [Order(After = PredefinedAdornmentLayers.Caret)]
+        [Order(After = PredefinedAdornmentLayers.Outlining)]
+        [Order(After = PredefinedAdornmentLayers.Selection)]
+        [Order(After = PredefinedAdornmentLayers.Squiggle)]
+        [Order(After = PredefinedAdornmentLayers.Text)]
+        [Order(After = PredefinedAdornmentLayers.TextMarker)]
         private AdornmentLayerDefinition editorAdornmentLayer;
 
 #pragma warning restore 649, 169
