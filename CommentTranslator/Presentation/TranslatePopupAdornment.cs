@@ -1,8 +1,6 @@
-﻿using System;
-using System.Windows.Controls;
-using System.Windows.Media;
+﻿using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -71,6 +69,11 @@ namespace CommentTranslator.Presentation
             _popup.Focus();
         }
 
+        /// <summary>
+        /// Handles the mouse left button.
+        /// </summary>
+        /// <param name="e">The <see cref="MouseButtonEventArgs"/> instance containing the event data.</param>
+        /// <returns></returns>
         public bool HandleMouseLeftButton(MouseButtonEventArgs e)
         {
             if (_popup == null) return false;
@@ -83,6 +86,11 @@ namespace CommentTranslator.Presentation
             return false;
         }
 
+        /// <summary>
+        /// Handles the mouse right button.
+        /// </summary>
+        /// <param name="e">The <see cref="MouseButtonEventArgs"/> instance containing the event data.</param>
+        /// <returns></returns>
         public bool HandleMouseRightButton(MouseButtonEventArgs e)
         {
             if (_popup == null) return false;
@@ -144,6 +152,11 @@ namespace CommentTranslator.Presentation
             }
         }
 
+        /// <summary>
+        /// Popups the closed.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void PopupClosed(object sender, EventArgs e)
         {
             if (sender is TranslatePopup popup)

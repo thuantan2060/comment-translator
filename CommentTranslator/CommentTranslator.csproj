@@ -58,13 +58,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Option\Settings.cs" />
-    <Compile Include="Presentation\TranslateMouseProcessor.cs" />
     <Compile Include="Presentation\TranslatePopup.xaml.cs">
       <DependentUpon>TranslatePopup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Presentation\TranslatePopupAdornment.cs" />
     <Compile Include="Presentation\TranslatePopupConnector.cs" />
-    <Compile Include="Presentation\TranslateMouseProcessorProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\VsOutputLogger.cs" />
   </ItemGroup>
