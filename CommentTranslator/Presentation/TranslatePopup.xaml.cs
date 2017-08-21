@@ -11,6 +11,12 @@ namespace CommentTranslator.Presentation
     /// </summary>
     public partial class TranslatePopup : UserControl
     {
+        #region Fields
+
+        private bool _isClose = false;
+
+        #endregion
+
         #region Contructors
 
         public TranslatePopup(SnapshotSpan span, string text, Size viewportSize)
@@ -19,6 +25,8 @@ namespace CommentTranslator.Presentation
             Text = text;
 
             InitializeComponent();
+
+            SetMaxSize(viewportSize);
         }
 
         #endregion
@@ -40,39 +48,43 @@ namespace CommentTranslator.Presentation
                 maxHeight = 600;
             if (maxHeight < 150)
                 maxHeight = 150;
-            tblTranslatedText.MaxHeight = maxHeight;
+            bdTranslatedText.MaxHeight = maxHeight;
+            bdError.MaxHeight = maxHeight;
         }
 
         private void Translate(string text)
         {
-            tblError.Visibility = Visibility.Collapsed;
-            tblTranslatedText.Visibility = Visibility.Collapsed;
+            bdError.Visibility = Visibility.Collapsed;
+            bdTranslatedText.Visibility = Visibility.Collapsed;
             tblDirection.Text = "Translating...";
 
             Task
                 .Run(() => CommentTranslatorPackage.TranslateClient.Translate(text))
                 .ContinueWith((data) =>
                 {
-                    if (!data.IsFaulted)
+                    if (!_isClose)
                     {
-                        if (data.Result.Code == 200 && (bool)data.Result.Tags["translate-success"])
+                        if (!data.IsFaulted)
                         {
-                            tblDirection.Text = string.Format("{0} - {1}", data.Result.Tags["from-language"].ToString().ToUpper(), data.Result.Tags["to-language"].ToString().ToUpper());
-                            tblTranslatedText.Text = data.Result.Data;
-                            tblTranslatedText.Visibility = Visibility.Visible;
+                            if (data.Result.Code == 200 && (bool)data.Result.Tags["translate-success"])
+                            {
+                                tblDirection.Text = string.Format("{0} -> {1}", data.Result.Tags["from-language"].ToString().ToUpper(), data.Result.Tags["to-language"].ToString().ToUpper());
+                                tblTranslatedText.Text = data.Result.Data;
+                                bdTranslatedText.Visibility = Visibility.Visible;
+                            }
+                            else
+                            {
+                                tblDirection.Text = "Translate Error";
+                                tblError.Text = data.Result.Message;
+                                bdError.Visibility = Visibility.Visible;
+                            }
                         }
                         else
                         {
                             tblDirection.Text = "Translate Error";
-                            tblError.Text = data.Result.Message;
-                            tblError.Visibility = Visibility.Visible;
+                            tblError.Text = data.Exception.Message;
+                            bdError.Visibility = Visibility.Visible;
                         }
-                    }
-                    else
-                    {
-                        tblDirection.Text = "Translate Error";
-                        tblError.Text = data.Exception.Message;
-                        tblError.Visibility = Visibility.Visible;
                     }
                 }, TaskScheduler.FromCurrentSynchronizationContext());
         }
@@ -84,6 +96,12 @@ namespace CommentTranslator.Presentation
         public void Translate()
         {
             Translate(Text);
+        }
+
+        public void Close()
+        {
+            _isClose = true;
+            OnClosed?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
@@ -101,9 +119,31 @@ namespace CommentTranslator.Presentation
             Translate(Text);
         }
 
-        private void CmdClose_Click(object sender, RoutedEventArgs e)
+        private void UserControl_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            OnClosed?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+        }
+
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void btnCopy_Click(object sender, RoutedEventArgs e)
+        {
+            if (tblTranslatedText.Visibility == Visibility.Visible)
+            {
+                Clipboard.SetText(tblTranslatedText.Text);
+            }else
+            {
+                Clipboard.SetText(tblError.Text);
+            }
+        }
+
+        private void TranslatedText_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            btnCopy_Click(sender, e);
+            Close();
         }
 
         #endregion
