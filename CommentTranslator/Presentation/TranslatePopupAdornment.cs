@@ -32,6 +32,13 @@ namespace CommentTranslator.Presentation
             this._view.Closed += OnClosed;
         }
 
+        //Some text to translate
+        /*
+         顔ルメ査能西第だンイ宮庫ずリこる連必フ銃現反んに英意20施トえごや目初ヲヘチ図42詳ず報竹認あん。
+         役つゆま紙能罪テ康属ヨヱ会年チ有各ハカ面旬めけも戦質シヱソ楽売2左め福継き之郎寮尼恨ぽのょ。
+         郁リどび対高録張ユハホ年表タルワヌ囲行ユノチサ間意フ禁聞ヘオ済楽めの必70禁ばか相国セトツヲ美1右づーふざ実業クヤイ供件ば航木く横探ぶぜざ期需ヌヒ妥離水線松ぜょび。
+        */
+
         /// <summary>
         /// Creates the specified view.
         /// </summary>
