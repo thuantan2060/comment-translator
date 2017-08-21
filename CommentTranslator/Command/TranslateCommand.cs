@@ -5,6 +5,7 @@
 //------------------------------------------------------------------------------
 
 using CommentTranslator.Presentation;
+using CommentTranslator.Util;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -111,7 +112,8 @@ namespace CommentTranslator
                     selection.SelectLine();
                 }
 
-                var selectedText = selection.Text.Trim();
+                //Trim selected text
+                var selectedText = CommentHelper.TrimComment(selection.Text);
 
                 //Check if selection text is still empty
                 if (!string.IsNullOrEmpty(selectedText))
