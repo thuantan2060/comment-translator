@@ -9,7 +9,8 @@
              TextOptions.TextFormattingMode="Display"
              UseLayoutRounding="True"
              MinWidth="120"
-             Initialized="UserControl_Initialized">
+             Initialized="UserControl_Initialized"
+             MouseDown="UserControl_MouseDown">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -38,11 +39,11 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Name="tblDirection" Text="Translating..." Padding="3,0,2,3"
+                    <TextBlock Grid.Column="1" Name="tblDirection" Text="Translating..." Padding="3,2,2,3"
                            TextTrimming="WordEllipsis" FontWeight="Bold" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Name="btnCopy" VerticalAlignment="Bottom"
-                            Click="btnCopy_Click" ToolTip="Copy" Margin="2,0,2,2" Padding="0">
+                            Click="btnCopy_Click" ToolTip="Copy" Margin="2" Padding="0">
                             <Viewbox Stretch="Uniform" Width="14" Height="14" >
                                 <Canvas Width="816" Height="1056" >
                                     <Path Data="F1 M 0,0 L -493.81,0 C -512.22,0 -524.55,12.33 -524.55,30.9 L -524.55,524.44 C -524.55,543.01 -512.22,555.34 -493.81,555.34
@@ -57,7 +58,7 @@
                             </Viewbox>
                         </Button>
                         <Button Name="btnClose" VerticalAlignment="Bottom"
-                            Click="btnClose_Click" ToolTip="Close" Margin="2,0,2,2">
+                            Click="btnClose_Click" ToolTip="Close" Margin="2">
                             <Path
                             Data="F1M54.0573,47.8776L38.1771,31.9974 54.0547,16.1198C55.7604,14.4141 55.7604,11.6511 54.0573,9.94531 52.3516,8.23962 49.5859,8.23962 47.8802,9.94531L32.0026,25.8229 16.1224,9.94531C14.4167,8.23962 11.6511,8.23962 9.94794,9.94531 8.24219,11.6511 8.24219,14.4141 9.94794,16.1198L25.8255,32 9.94794,47.8776C8.24219,49.5834 8.24219,52.3477 9.94794,54.0534 11.6511,55.7572 14.4167,55.7585 16.1224,54.0534L32.0026,38.1745 47.8802,54.0534C49.5859,55.7585 52.3516,55.7572 54.0573,54.0534 55.7604,52.3477 55.763,49.5834 54.0573,47.8776z"
                             Stretch="Uniform" Width="10" Height="10" />
@@ -66,13 +67,15 @@
                 </Grid>
             </Border>
             <!--error-->
-            <Border x:Name="bdError" Grid.Row="1" Padding="4 1 4 3" Visibility="Collapsed" Style="{StaticResource MouseOver}" ToolTip="Click to copy" MouseUp="TranslatedText_MouseUp">
+            <Border x:Name="bdError" Grid.Row="1" Padding="3 2 3 2" Visibility="Collapsed" Style="{StaticResource MouseOver}" ToolTip="Click to copy" MouseUp="TranslatedText_MouseUp">
                 <TextBlock x:Name="tblError" Foreground="Firebrick" TextTrimming="None" TextWrapping="Wrap"/>
             </Border>
 
             <!--results-->
-            <Border x:Name="bdTranslatedText" Grid.Row="2" Padding="4 1 4 3" Visibility="Collapsed" Style="{StaticResource MouseOver}" ToolTip="Click to copy" MouseUp="TranslatedText_MouseUp">
-                <TextBlock x:Name="tblTranslatedText"  HorizontalAlignment="Stretch" MaxHeight="600" Margin="-1,0,-1,-1" TextWrapping="Wrap" Text="This is translated text"/>
+            <Border x:Name="bdTranslatedText" Grid.Row="2" Padding="3 2 3 2" Visibility="Visible" Style="{StaticResource MouseOver}" ToolTip="Click to copy" MouseUp="TranslatedText_MouseUp">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="tblTranslatedText"  HorizontalAlignment="Stretch" MaxHeight="600" TextWrapping="Wrap" Text="This is translated text"/>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Border>

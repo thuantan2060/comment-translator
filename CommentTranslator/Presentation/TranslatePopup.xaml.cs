@@ -26,6 +26,7 @@ namespace CommentTranslator.Presentation
 
             InitializeComponent();
 
+            SetMaxSize(viewportSize);
         }
 
         #endregion
@@ -47,7 +48,8 @@ namespace CommentTranslator.Presentation
                 maxHeight = 600;
             if (maxHeight < 150)
                 maxHeight = 150;
-            tblTranslatedText.MaxHeight = maxHeight;
+            bdTranslatedText.MaxHeight = maxHeight;
+            bdError.MaxHeight = maxHeight;
         }
 
         private void Translate(string text)
@@ -117,6 +119,11 @@ namespace CommentTranslator.Presentation
             Translate(Text);
         }
 
+        private void UserControl_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+        }
+
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -136,6 +143,7 @@ namespace CommentTranslator.Presentation
         private void TranslatedText_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             btnCopy_Click(sender, e);
+            Close();
         }
 
         #endregion

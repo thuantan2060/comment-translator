@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace CommentTranslator.Presentation
@@ -11,7 +12,6 @@ namespace CommentTranslator.Presentation
     /// </summary>
     internal sealed class TranslatePopupAdornment
     {
-        private readonly ITextBuffer _buffer;
         private readonly IWpfTextView _view;
         private readonly IAdornmentLayer _layer;
         private TranslatePopup _popup;
@@ -26,7 +26,6 @@ namespace CommentTranslator.Presentation
         {
             this._view = view ?? throw new ArgumentNullException("view");
             this._layer = view.GetAdornmentLayer("TransplatePopupAdornment");
-            this._buffer = _view.TextBuffer;
 
             this._view.Selection.SelectionChanged += this.OnSelectionChanged;
             this._view.LayoutChanged += this.OnLayoutChanged;
@@ -147,7 +146,8 @@ namespace CommentTranslator.Presentation
 
             if (g != null)
             {
-                popup.Margin = new Thickness(g.Bounds.BottomLeft.X, g.Bounds.BottomLeft.Y, 0, 0);
+                Canvas.SetLeft(popup, g.Bounds.BottomLeft.X);
+                Canvas.SetTop(popup, g.Bounds.BottomLeft.Y);
                 _layer.AddAdornment(span, null, popup);
             }
         }

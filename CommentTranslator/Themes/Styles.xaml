@@ -297,8 +297,8 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.ToolWindowBackgroundKey}}" />
         <Style.Triggers>
             <Trigger Property="UIElement.IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMouseOverBackgroundBeginKey}}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMouseOverBackgroundBeginKey}}" />
+                <!--<Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMouseOverBackgroundBeginKey}}" />-->
+                <!--<Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMouseOverBackgroundBeginKey}}" />-->
                 <Setter Property="FrameworkElement.Cursor" Value="Hand" />
             </Trigger>
         </Style.Triggers>
