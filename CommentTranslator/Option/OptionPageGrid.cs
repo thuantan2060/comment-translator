@@ -9,7 +9,7 @@ namespace CommentTranslator.Option
         [Category("Server")]
         [DisplayName("Translate Server Url")]
         [Description("The url of translate server")]
-        public string TranslateUrl { get; set; } = "http://mti-translate-api-mti-translate-api.a3c1.starter-us-west-1.openshiftapps.com/";
+        public string TranslateUrl { get; set; } = "http://mti-translate-api-mti-translate-api.a3c1.starter-us-west-1.openshiftapps.com";
 
         [Category("Translate")]
         [DisplayName("Translate From Language")]
