@@ -3,7 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/fe6mld9pvrane5wb?svg=true)](https://ci.appveyor.com/project/thuantan2060/comment-translator)
 
 <!-- Update the VS Gallery link after you upload the VSIX-->
-Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.microsoft.com/[GuidFromGallery])
+Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.microsoft.com/b80c6a19-fea5-4abd-a394-84cf8a56ecc4)
 or get the [CI build](http://vsixgallery.com/extension/c90fdb4d-7351-4205-9d62-159428df15d9/).
 
 ---------------------------------------
