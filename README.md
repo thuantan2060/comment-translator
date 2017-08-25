@@ -18,7 +18,7 @@ See the [change log](CHANGELOG.md) for changes and road map.
 - Manual translate selected text with right-click (or Ctrl-Shift-T)
 
 ### Automatic translate comment in opening file
-Commnent in you opening file will be translate to language you were setting.
+Commnent in you opening file will be translate to language you were setting. (Comming soon!)
 
 ### Manual translate selected text
 Translate selected text by right-click or shortcut Ctrl-Shift-T
