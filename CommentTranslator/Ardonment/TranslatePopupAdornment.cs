@@ -1,11 +1,12 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using CommentTranslator.Presentation;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace CommentTranslator.Presentation
+namespace CommentTranslator.Ardonment
 {
     /// <summary>
     /// Adornment class that draws a square box in the top right hand corner of the viewport
