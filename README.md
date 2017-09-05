@@ -6,7 +6,7 @@
 Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.microsoft.com/b80c6a19-fea5-4abd-a394-84cf8a56ecc4)
 or get the [CI build](http://vsixgallery.com/extension/c90fdb4d-7351-4205-9d62-159428df15d9/).
 
----------------------------------------
+----------------------------------------
 
 Extension of visual studio 2017 that automatic translate comment in you open file.
 
