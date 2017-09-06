@@ -6,7 +6,7 @@
 Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.microsoft.com/b80c6a19-fea5-4abd-a394-84cf8a56ecc4)
 or get the [CI build](http://vsixgallery.com/extension/c90fdb4d-7351-4205-9d62-159428df15d9/).
 
----------------------------------------
+----------------------------------------
 
 Extension of visual studio 2017 that automatic translate comment in you open file.
 
@@ -18,7 +18,7 @@ See the [change log](CHANGELOG.md) for changes and road map.
 - Manual translate selected text with right-click (or Ctrl-Shift-T)
 
 ### Automatic translate comment in opening file
-Commnent in you opening file will be translate to language you were setting.
+Commnent in you opening file will be translate to language you were setting. (Comming soon!)
 
 ### Manual translate selected text
 Translate selected text by right-click or shortcut Ctrl-Shift-T
