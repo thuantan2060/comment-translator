@@ -1,7 +1,13 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using CommentTranslator.Util;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace CommentTranslator.Ardonment
 {
@@ -70,7 +76,7 @@ namespace CommentTranslator.Ardonment
             _lastText = tag.Text;
             UpdateTranslateText("Translating...");
 
-            Task.Run(() => CommentTranslatorPackage.TranslateClient.Translate(tag.Text))
+            Task.Run(() => CommentTranslatorPackage.TranslateClient.Translate(CommentHelper.TrimCommnentSingleline(tag.Text)))
                 .ContinueWith((data) =>
                 {
                     if (!data.IsFaulted)
@@ -95,13 +101,34 @@ namespace CommentTranslator.Ardonment
             this.Height = height;
             this.Width = width;
 
+            //Draw lable
             _tblTranslatedText = new TextBlock()
             {
                 Foreground = Brushes.Gray
             };
-
+            _tblTranslatedText.MouseDown += _tblTranslatedText_MouseDown;
+            _tblTranslatedText.Measure(new Size(double.MaxValue, double.MaxValue));
             Canvas.SetTop(_tblTranslatedText, 4);
+            Canvas.SetLeft(_tblTranslatedText, 10);
+
+            //Draw Line
+            var line = new Line();
+            line.Stroke = Brushes.LightGray;
+            line.StrokeThickness = 6;
+            line.SnapsToDevicePixels = true;
+            line.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+            line.X1 = 4;
+            line.X2 = 4;
+            line.Y1 = 4;
+            line.Y2 = _tblTranslatedText.DesiredSize.Height + line.Y1 - 2;
+
+            this.Children.Add(line);
             this.Children.Add(_tblTranslatedText);
+        }
+
+        private void _tblTranslatedText_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            e.Handled = true;
         }
     }
 }
