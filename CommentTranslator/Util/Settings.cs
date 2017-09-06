@@ -1,4 +1,6 @@
-﻿namespace CommentTranslator.Option
+﻿using CommentTranslator.Option;
+
+namespace CommentTranslator.Util
 {
     public class Settings
     {

@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using CommentTranlsator.Client;
 using CommentTranslator.Option;
 using Microsoft.VisualStudio.Shell;
+using CommentTranslator.Util;
 
 namespace CommentTranslator
 {
@@ -33,9 +34,10 @@ namespace CommentTranslator
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(CommentTranslatorPackage.PackageGuidString)]
+    [Guid(PackageGuidString)]
     [ProvideOptionPage(typeof(OptionPageGrid), "Comment Translator", "General", 0, 0, true)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
     public sealed class CommentTranslatorPackage : Package
     {
         /// <summary>

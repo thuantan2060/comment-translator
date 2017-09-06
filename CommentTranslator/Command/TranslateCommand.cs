@@ -4,6 +4,7 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using CommentTranslator.Ardonment;
 using CommentTranslator.Presentation;
 using CommentTranslator.Util;
 using EnvDTE;

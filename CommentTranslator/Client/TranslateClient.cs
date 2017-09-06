@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CommentTranslator.Option;
 using Framework;
+using CommentTranslator.Util;
 
 namespace CommentTranlsator.Client
 {
