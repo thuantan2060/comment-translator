@@ -149,7 +149,7 @@ namespace CommentTranslator.Support
         // Produces tags on the snapshot that the tag consumer asked for.
         public virtual IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (spans == null || spans.Count == 0)
+            if (!CommentTranslatorPackage.Settings.AutoTranslateComment || spans == null || spans.Count == 0)
                 yield break;
 
             // Translate the request to the snapshot that this tagger is current with.

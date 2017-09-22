@@ -11,6 +11,10 @@ download in the
 
 These are the changes to each version that has been released
 on the official Visual Studio extension gallery.
+## 1.1.0
+- [x] Add auto translate single line comment
+- [x] Add enable/disable auto translate in option 
+
 
 ## 1.0.12
 
