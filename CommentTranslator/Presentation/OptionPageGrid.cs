@@ -24,7 +24,7 @@ namespace CommentTranslator.Option
         [Category("Translate")]
         [DisplayName("Auto detect language")]
         [Description("Auto detect language translate from")]
-        public bool AutoDetect { get; set; } = true;
+        public bool AutoDetect { get; set; } = false;
 
         protected override void OnClosed(EventArgs e)
         {
