@@ -44,6 +44,8 @@ namespace CommentTranslator.Support
 
         public virtual IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            if (!CommentTranslatorPackage.Settings.AutoTranslateComment) yield break;
+
             // Here we grab whole lines so that matches that only partially fall inside the spans argument are detected.
             // Note that the spans argument can contain spans that are sub-spans of lines or intersect multiple lines.
             foreach (var line in GetIntersectingLines(spans))
