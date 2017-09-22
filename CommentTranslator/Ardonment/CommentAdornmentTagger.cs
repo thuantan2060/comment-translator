@@ -26,7 +26,7 @@ namespace CommentTranslator.Ardonment
         {
             _commentTagger.Dispose();
 
-            view.Properties.RemoveProperty(typeof(CommentTranslateTagger));
+            //view.Properties.RemoveProperty(typeof(CommentTranslateTagger));
         }
 
         protected override CommentAdornment CreateAdornment(CommentTranslateTag data, SnapshotSpan span)

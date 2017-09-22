@@ -54,9 +54,9 @@
   <ItemGroup>
     <Compile Include="Ardonment\CommentAdornmentTagger.cs" />
     <Compile Include="Ardonment\CommentAdornmentTaggerProvider.cs" />
+    <Compile Include="Ardonment\CommentTagger.cs" />
+    <Compile Include="Ardonment\CommentTaggerProvider.cs" />
     <Compile Include="Ardonment\CommentTranslateTag.cs" />
-    <Compile Include="Ardonment\CommentTranslateTagger.cs" />
-    <Compile Include="Ardonment\CommentTranslateTaggerProvider.cs" />
     <Compile Include="Client\TranslateClient.cs" />
     <Compile Include="Command\TranslateCommand.cs" />
     <Compile Include="CommentTranslatorPackage.cs" />

@@ -11,6 +11,9 @@ using CommentTranlsator.Client;
 using CommentTranslator.Option;
 using Microsoft.VisualStudio.Shell;
 using CommentTranslator.Util;
+using EnvDTE80;
+using EnvDTE;
+using System.Diagnostics;
 
 namespace CommentTranslator
 {
@@ -47,6 +50,11 @@ namespace CommentTranslator
         public static Settings Settings = new Settings();
         public static TranslateClient TranslateClient;
 
+        public DTE2 DTE { get; set; }
+        public Events Events { get; set; }
+        public DocumentEvents DocumentEvents { get; set; }
+        public WindowEvents WindowEvents { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslateCommand"/> class.
         /// </summary>
@@ -74,6 +82,31 @@ namespace CommentTranslator
 
             //Create client
             TranslateClient = new TranslateClient(Settings);
+
+            DTE = (DTE2)GetService(typeof(DTE));
+            Events = DTE.Events;
+            DocumentEvents = Events.DocumentEvents;
+            WindowEvents = Events.WindowEvents;
+
+            DocumentEvents.DocumentOpened += DocumentEvents_DocumentOpened;
+            DocumentEvents.DocumentSaved += DocumentEvents_DocumentSaved;
+            WindowEvents.WindowActivated += WindowEvents_WindowActivated;
+        }
+
+        private void WindowEvents_WindowActivated(Window GotFocus, Window LostFocus)
+        {
+            Debug.WriteLine("Focus: " + GotFocus.Caption);
+        }
+
+        private void DocumentEvents_DocumentSaved(Document Document)
+        {
+            Debug.WriteLine("Save: " + Document.Name);
+
+        }
+
+        private void DocumentEvents_DocumentOpened(Document Document)
+        {
+            Debug.WriteLine("Open: " + Document.Name);
         }
 
         #endregion
