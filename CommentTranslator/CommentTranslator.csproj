@@ -60,6 +60,8 @@
     <Compile Include="Client\TranslateClient.cs" />
     <Compile Include="Command\TranslateCommand.cs" />
     <Compile Include="CommentTranslatorPackage.cs" />
+    <Compile Include="Parsers\CommentParser.cs" />
+    <Compile Include="Parsers\ICommentParser.cs" />
     <Compile Include="Presentation\OptionPageGrid.cs">
       <SubType>Component</SubType>
     </Compile>
