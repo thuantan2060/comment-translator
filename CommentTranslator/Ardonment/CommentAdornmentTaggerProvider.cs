@@ -31,8 +31,8 @@ namespace CommentTranslator.Ardonment
 
             return CommentAdornmentTagger.GetTagger(
                 (IWpfTextView)textView,
-                new Lazy<ITagAggregator<CommentTranslateTag>>(
-                    () => BufferTagAggregatorFactoryService.CreateTagAggregator<CommentTranslateTag>(textView.TextBuffer)))
+                new Lazy<ITagAggregator<IClassificationTag>>(
+                    () => BufferTagAggregatorFactoryService.CreateTagAggregator<IClassificationTag>(textView.TextBuffer)))
                 as ITagger<T>;
         }
     }

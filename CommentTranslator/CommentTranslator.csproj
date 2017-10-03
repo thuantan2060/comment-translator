@@ -54,8 +54,6 @@
   <ItemGroup>
     <Compile Include="Ardonment\CommentAdornmentTagger.cs" />
     <Compile Include="Ardonment\CommentAdornmentTaggerProvider.cs" />
-    <Compile Include="Ardonment\CommentTagger.cs" />
-    <Compile Include="Ardonment\CommentTaggerProvider.cs" />
     <Compile Include="Ardonment\CommentTranslateTag.cs" />
     <Compile Include="Client\TranslateClient.cs" />
     <Compile Include="Command\TranslateCommand.cs" />
@@ -79,6 +77,7 @@
     <Compile Include="Support\IntraTextAdornmentTagger.cs" />
     <Compile Include="Support\RegexMultiLineTagger.cs" />
     <Compile Include="Support\RegexTagger.cs" />
+    <Compile Include="Util\CommentTagHelper.cs" />
     <Compile Include="Util\Settings.cs" />
     <Compile Include="Presentation\TranslatePopup.xaml.cs">
       <DependentUpon>TranslatePopup.xaml</DependentUpon>
