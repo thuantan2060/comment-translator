@@ -31,14 +31,7 @@ namespace CommentTranslator.Ardonment
 
         protected override CommentAdornment CreateAdornment(CommentTranslateTag data, SnapshotSpan span)
         {
-            var lineHeight = 20d;
-            try
-            {
-                lineHeight = _view.LineHeight;
-            }
-            catch { }
-
-            return new CommentAdornment(data, span, lineHeight);
+            return new CommentAdornment(data, span, _view);
         }
 
         protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTranslateTag>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
@@ -58,14 +51,7 @@ namespace CommentTranslator.Ardonment
 
         protected override bool UpdateAdornment(CommentAdornment adornment, CommentTranslateTag data, SnapshotSpan span)
         {
-            var lineHeight = 20d;
-            try
-            {
-                lineHeight = _view.LineHeight;
-            }
-            catch { }
-
-            adornment.Update(data);
+            adornment.Update(data, span);
             return true;
         }
     }

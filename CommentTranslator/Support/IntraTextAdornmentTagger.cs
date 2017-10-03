@@ -100,7 +100,7 @@ namespace CommentTranslator.Support
 
                 foreach (var keyValuePair in _adornmentCache)
                 {
-                    var key = keyValuePair.Key.TranslateTo(_snapshot, SpanTrackingMode.EdgeExclusive);
+                    var key = keyValuePair.Key.TranslateTo(_snapshot, SpanTrackingMode.EdgeInclusive);
                     if (!translatedAdornmentCache.ContainsKey(key))
                     {
                         translatedAdornmentCache.Add(key, keyValuePair.Value);
@@ -170,7 +170,7 @@ namespace CommentTranslator.Support
                 // Translate each adornment to the snapshot that the tagger was asked about.
                 SnapshotSpan span = tagSpan.Span.TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
 
-                IntraTextAdornmentTag tag = new IntraTextAdornmentTag(tagSpan.Tag.Adornment, tagSpan.Tag.RemovalCallback, null, 0, 0, 20, tagSpan.Tag.Affinity);
+                IntraTextAdornmentTag tag = new IntraTextAdornmentTag(tagSpan.Tag.Adornment, tagSpan.Tag.RemovalCallback, null, 0, 0, tagSpan.Tag.Adornment.DesiredSize.Height, tagSpan.Tag.Affinity);
                 yield return new TagSpan<IntraTextAdornmentTag>(span, tag);
             }
         }

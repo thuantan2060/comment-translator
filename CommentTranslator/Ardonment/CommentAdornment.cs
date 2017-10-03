@@ -1,5 +1,8 @@
-﻿using CommentTranslator.Util;
+﻿using CommentTranslator.Support;
+using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,31 +19,52 @@ namespace CommentTranslator.Ardonment
 
     internal sealed class CommentAdornment : Canvas
     {
-        private TextBlock _tblTranslatedText;
+        #region Fields
+
+        private TextBlock _originTextBlock;
+        private TextBlock _textBlock;
+        private Line _line;
 
         private CommentTranslateTag _tag;
         private SnapshotSpan _span;
-        private double _lineHeight;
+        private IWpfTextView _view;
 
         private bool _isTranslating = false;
         private string _lastText;
 
-        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, double lineHeight)
+        #endregion
+
+        #region Contructors
+
+        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, IWpfTextView textView)
         {
             _tag = tag;
             _span = span;
-            _lineHeight = lineHeight;
+            _view = textView;
 
-            GenerateLayout(tag);
+            GenerateLayout(tag, textView);
+            RefreshLayout(tag, textView);
             RequestTranslate();
         }
 
-        public void Update(CommentTranslateTag tag)
+        #endregion
+
+        #region Properties
+
+        #endregion
+
+        #region Methods
+
+        public void Update(CommentTranslateTag tag, SnapshotSpan span)
         {
             _tag = tag;
 
             RequestTranslate();
         }
+
+        #endregion
+
+        #region Functions
 
         private void RequestTranslate()
         {
@@ -100,60 +124,80 @@ namespace CommentTranslator.Ardonment
 
         private void AfterTranslate(string translatedText)
         {
-            if (_tblTranslatedText != null)
+            if (_textBlock != null)
             {
-                _tblTranslatedText.Text = translatedText;
+                _textBlock.Text = translatedText;
             }
         }
 
-        private void GenerateLayout(CommentTranslateTag tag)
+        private void GenerateLayout(CommentTranslateTag tag, IWpfTextView textView)
         {
-            //Draw lable
-            _tblTranslatedText = new TextBlock()
+            //Create origin textblock
+            _originTextBlock = new TextBlock()
             {
-                Foreground = Brushes.Gray
+                Text = tag.Text,
+                FontSize = 12.5
             };
-            _tblTranslatedText.MouseDown += _tblTranslatedText_MouseDown;
-            _tblTranslatedText.Measure(new Size(double.MaxValue, double.MaxValue));
+            _originTextBlock.Measure(new Size(double.MaxValue, double.MaxValue));
+
+            //Draw lable
+            _textBlock = new TextBlock()
+            {
+                Foreground = Brushes.Gray,
+                FontSize = 12.5
+            };
+            _textBlock.MouseDown += _tblTranslatedText_MouseDown;
+            _textBlock.Measure(new Size(double.MaxValue, double.MaxValue));
 
             //Draw Line
-            var line = new Line();
-            line.Stroke = Brushes.LightGray;
-            line.StrokeThickness = 6;
-            line.SnapsToDevicePixels = true;
-            line.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            line.X1 = 4;
-            line.X2 = 4;
-            line.Y1 = 4;
+            _line = new Line();
+            _line.Stroke = Brushes.LightGray;
+            _line.StrokeThickness = 6;
+            _line.SnapsToDevicePixels = true;
+            _line.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+            _line.X1 = 4;
+            _line.X2 = 4;
+            _line.Y1 = 4;
+            _line.Y2 = _originTextBlock.DesiredSize.Height + _line.Y1 - 2;
 
+            this.Width = 0;
+            this.Height = 0;
+
+            this.Children.Add(_line);
+            this.Children.Add(_textBlock);
+        }
+
+        private void RefreshLayout(CommentTranslateTag tag, IWpfTextView textView)
+        {
+            _textBlock.Measure(new Size(double.MaxValue, double.MaxValue));
             switch (GetPosition(tag.Text))
             {
                 case TextPosition.Bottom:
                     {
-                        line.Y2 = _tblTranslatedText.DesiredSize.Height + line.Y1 - 2;
+                        Canvas.SetTop(_textBlock, 4);
+                        Canvas.SetLeft(_textBlock, 10);
 
-                        Canvas.SetTop(_tblTranslatedText, 4);
-                        Canvas.SetLeft(_tblTranslatedText, 10);
-
-                        this.Height = _lineHeight;
-                        this.Width = 0;
+                        this.Height = textView.GetLineHeight();
                     }
                     break;
                 case TextPosition.Right:
                     {
-                        line.Y2 = line.Y1;
+                        var top = -textView.GetLineHeight() + 4;
+                        var left = _originTextBlock.DesiredSize.Width + 4;
 
-                        Canvas.SetTop(_tblTranslatedText, 0);
-                        Canvas.SetLeft(_tblTranslatedText, 50);
+                        Canvas.SetTop(_textBlock, top);
+                        Canvas.SetLeft(_textBlock, left);
+
+                        _line.X1 = _line.X2 = left;
+                        _line.Y1 = top - 6;
 
                         this.Height = 0;
-                        this.Width = 0;
                     }
                     break;
             }
 
-            this.Children.Add(line);
-            this.Children.Add(_tblTranslatedText);
+            _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 - 2;
+            this.Width = 0;
         }
 
         private TextPosition GetPosition(string text)
@@ -171,9 +215,23 @@ namespace CommentTranslator.Ardonment
             }
         }
 
+        #endregion
+
+        #region Events
+
+        #endregion
+
+        #region EventHandlers
+
         private void _tblTranslatedText_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             //e.Handled = true;
         }
+
+        #endregion
+
+        #region InnerMembers
+
+        #endregion
     }
 }
