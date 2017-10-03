@@ -1,62 +1,105 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CommentTranslator.Parsers
 {
-    public  abstract class CommentParser : ICommentParser
+    public abstract class CommentParser : ICommentParser
     {
         protected IEnumerable<CommentTag> Tags { get; set; }
-        protected Regex Regex { get; set; }
 
         public IEnumerable<Comment> GetComment(SnapshotSpan span)
         {
-            if (Regex == null)
+            var watch = new Stopwatch();
+            watch.Start();
+            try
             {
-                Regex = CreateRegex(Tags);
-            }
 
-            return Parse(span.GetText(), Tags, Regex);
+                return Parse(span.GetText(), Tags);
+            }
+            finally
+            {
+                watch.Stop();
+                Debug.WriteLine("Time: " + watch.ElapsedMilliseconds);
+            }
         }
 
-        protected virtual Regex CreateRegex(IEnumerable<CommentTag> tags)
-        {
-            if (tags.Count() == 0) return null;
-            var patternBuilder = new StringBuilder();
+        //protected virtual Regex CreateRegex(IEnumerable<CommentTag> tags)
+        //{
+        //    if (tags.Count() == 0) return null;
+        //    var patternBuilder = new StringBuilder();
 
-            //Append tag to pattern
-            foreach (var tag in tags)
-            {
-                patternBuilder.Append(string.Format("|(?<{0}>{1}.*{2})", tag.Name, tag.Start, tag.End));
-            }
+        //    //Append tag to pattern
+        //    foreach (var tag in tags)
+        //    {
+        //        patternBuilder.Append(string.Format("|(?<{0}>{1}((?!{2}).)*{2})", tag.Name, tag.Start, tag.End));
+        //    }
 
-            //Remove first '|'
-            if (patternBuilder.Length > 0)
-            {
-                patternBuilder.Remove(0, 1);
-            }
+        //    //Remove first '|'
+        //    if (patternBuilder.Length > 0)
+        //    {
+        //        patternBuilder.Remove(0, 1);
+        //    }
 
-            return new Regex(patternBuilder.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        }
+        //    return new Regex(patternBuilder.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        //}
 
-        protected virtual IEnumerable<Comment> Parse(string text, IEnumerable<CommentTag> tags, Regex regex)
+        protected virtual IEnumerable<Comment> Parse(string text, IEnumerable<CommentTag> tags)
         {
             var comments = new List<Comment>();
-            var matches = regex.Matches(text);
-            
-            foreach(Match match in matches)
+
+            while (text.Length > 0)
             {
-                foreach(var tag in tags)
+                //Find first start tag
+                CommentTag currentTag = null;
+                int startIndex = int.MaxValue;
+                foreach (var tag in tags)
                 {
-                    var group = match.Groups[tag.Name];
-                    if (group != null) {
-                        comments.Add(new Comment() {
-                            Text = group.Value,
-                            Tag = tag
-                        });
+                    var index = text.IndexOf(tag.Start);
+                    if (index >= 0 && index < startIndex)
+                    {
+                        currentTag = tag;
+                        startIndex = index;
                     }
+                }
+
+                //Check if found start tag
+                if (currentTag != null)
+                {
+                    //Find first end tag
+                    var endIndex = 0;
+                    if (currentTag.Start != currentTag.End)
+                    {
+                        endIndex = text.IndexOf(currentTag.End);
+                    }
+                    else
+                    {
+                        endIndex = text.Substring(startIndex + currentTag.Start.Length).IndexOf(currentTag.End);
+                    }
+
+                    //Check if found end tag
+                    if (endIndex >= 0)
+                    {
+                        //Add comment
+                        comments.Add(new Comment()
+                        {
+                            Tag = currentTag,
+                            Text = text.Substring(startIndex + currentTag.Start.Length, endIndex - startIndex - currentTag.Start.Length)
+                        });
+
+                        text = text.Substring(endIndex + currentTag.End.Length);
+                    }
+                    else
+                    {
+                        text = "";
+                    }
+                }
+                else
+                {
+                    text = "";
                 }
             }
 

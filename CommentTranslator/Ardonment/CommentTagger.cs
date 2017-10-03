@@ -11,11 +11,13 @@ namespace CommentTranslator.Ardonment
 {
     internal class CommentTagger : ITagger<CommentTranslateTag>
     {
-        private ITagAggregator<IClassificationTag> _aggregator;
+        private readonly IClassificationTypeRegistryService _registry;
+        private readonly ITagAggregator<IClassificationTag> _aggregator;
 
         public CommentTagger(IClassificationTypeRegistryService registry, ITagAggregator<IClassificationTag> tagAggregator)
         {
             this._aggregator = tagAggregator;
+            this._registry = registry;
         }
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;

@@ -28,7 +28,9 @@ namespace CommentTranslator.Ardonment
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
 
-            return buffer.Properties.GetOrCreateSingletonProperty(() => new CommentTagger(ClassificationRegistry, Aggregator.CreateTagAggregator<IClassificationTag>(buffer))) as ITagger<T>;
+            var tagAggregator = Aggregator.CreateTagAggregator<IClassificationTag>(buffer);
+
+            return buffer.Properties.GetOrCreateSingletonProperty(() => new CommentTagger(ClassificationRegistry, tagAggregator)) as ITagger<T>;
         }
     }
 }

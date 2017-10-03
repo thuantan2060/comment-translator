@@ -61,6 +61,16 @@
     <Compile Include="Command\TranslateCommand.cs" />
     <Compile Include="CommentTranslatorPackage.cs" />
     <Compile Include="Parsers\CommentParser.cs" />
+    <Compile Include="Parsers\PythonCommentParser.cs" />
+    <Compile Include="Parsers\CssCommentParser .cs" />
+    <Compile Include="Parsers\HtmlCommentParser.cs" />
+    <Compile Include="Parsers\JavaScriptCommentParser.cs" />
+    <Compile Include="Parsers\CppCommentParser.cs" />
+    <Compile Include="Parsers\FSharpCommentParser.cs" />
+    <Compile Include="Parsers\XamlCommentParser.cs" />
+    <Compile Include="Parsers\VBCommentParser.cs" />
+    <Compile Include="Parsers\XmlCommentParser.cs" />
+    <Compile Include="Parsers\CSharpCommentParser.cs" />
     <Compile Include="Parsers\ICommentParser.cs" />
     <Compile Include="Presentation\OptionPageGrid.cs">
       <SubType>Component</SubType>
