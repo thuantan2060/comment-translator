@@ -18,7 +18,11 @@ See the [change log](CHANGELOG.md) for changes and road map.
 - Manual translate selected text with right-click (or Ctrl-Shift-T)
 
 ### Automatic translate comment in opening file
-Commnent in you opening file will be translate to language you were setting. (Comming soon!)
+Commnent in you opening file will be translate to language you were setting.
+
+#### Auto translate single line comment
+![Translate Single Line Comment](Images/Translate-single-line-comment.png)
+To disable/enable change option _AutoTranslateComment_ in option panel.
 
 ### Manual translate selected text
 Translate selected text by right-click or shortcut Ctrl-Shift-T
