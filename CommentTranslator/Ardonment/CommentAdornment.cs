@@ -76,41 +76,26 @@ namespace CommentTranslator.Ardonment
 
         private void RequestTranslate(CommentTranslateTag tag)
         {
-            //Trim comment
-            var trimComment = new TrimComment() {
-                OriginText = tag.Text,
-                TrimedText = tag.Text,
-                LineCount = CommentHelper.LineCount(tag.Text)
-            };
-            if (_parser != null)
+            var comment = TrimComment(tag);
+            if (_isHide = IsHide(comment))
             {
-                trimComment = _parser.TrimComment(tag.Text);
-            }
-
-            _isHide = false;
-            //Not translate empty comment
-            if (string.IsNullOrEmpty(trimComment.TrimedText))
-            {
-                _isHide = true;
                 RefreshLayout(tag, _view);
+                return;
             }
 
             //Send to translate
-            if (!_isTranslating && trimComment.TrimedText != _lastText)
+            if (!_isTranslating && comment.TrimedText != _lastText)
             {
                 _isTranslating = true;
-                Debug.WriteLine("Translating true");
-                WaitTranslate(trimComment, tag.TimeWaitAfterChange);
+                WaitTranslate(comment, tag.TimeWaitAfterChange);
             }
         }
 
         private void WaitTranslate(TrimComment comment, int wait)
         {
-            Debug.WriteLine("ExecuteTranslate 1");
             if (wait <= 0)
             {
                 ExecuteTranslate(comment);
-                Debug.WriteLine("ExecuteTranslate 1");
             }
             else
             {
@@ -120,12 +105,25 @@ namespace CommentTranslator.Ardonment
                         if (comment.OriginText == _tag.Text)
                         {
                             ExecuteTranslate(comment);
-                            Debug.WriteLine("ExecuteTranslate 2");
                         }
                         else
                         {
-                            RequestTranslate(_tag);
-                            Debug.WriteLine("ExecuteTranslate 2");
+                            var newComment = TrimComment(_tag);
+                            if (_isHide = IsHide(comment))
+                            {
+                                RefreshLayout(_tag, _view);
+                                _isTranslating = false;
+                                return;
+                            }
+
+                            if (newComment.TrimedText != _lastText)
+                            {
+                                WaitTranslate(newComment, wait);
+                            }
+                            else
+                            {
+                                _isTranslating = false;
+                            }
                         }
                     }, TaskScheduler.FromCurrentSynchronizationContext());
             }
@@ -136,7 +134,6 @@ namespace CommentTranslator.Ardonment
             if (CommentTranslatorPackage.TranslateClient == null || _lastText == comment.TrimedText)
             {
                 _isTranslating = false;
-                Debug.WriteLine("Translating false");
                 return;
             }
 
@@ -152,7 +149,6 @@ namespace CommentTranslator.Ardonment
                     }
 
                     this._isTranslating = false;
-                    Debug.WriteLine("Translating false");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -303,6 +299,34 @@ namespace CommentTranslator.Ardonment
             {
                 return TextPositions.Bottom;
             }
+        }
+
+        private TrimComment TrimComment(CommentTranslateTag tag)
+        {
+            //Trim comment
+            var trimComment = new TrimComment()
+            {
+                OriginText = tag.Text,
+                TrimedText = tag.Text,
+                LineCount = CommentHelper.LineCount(tag.Text)
+            };
+            if (_parser != null)
+            {
+                trimComment = _parser.TrimComment(tag.Text);
+            }
+
+            return trimComment;
+        }
+
+        private bool IsHide(TrimComment comment)
+        {
+            //Not translate empty comment
+            if (string.IsNullOrEmpty(comment.TrimedText))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         #endregion
