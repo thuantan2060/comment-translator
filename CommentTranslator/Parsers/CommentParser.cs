@@ -52,7 +52,14 @@ namespace CommentTranslator.Parsers
                     var endIndex = 0;
                     if (currentTag.Start != currentTag.End)
                     {
-                        endIndex = text.IndexOf(currentTag.End);
+                        if (currentTag.End.Length == 0)
+                        {
+                            endIndex = text.IndexOf('\n') + 1;
+                        }
+                        else
+                        {
+                            endIndex = text.IndexOf(currentTag.End);
+                        }
                     }
                     else
                     {
@@ -114,7 +121,8 @@ namespace CommentTranslator.Parsers
                     //Check if single line
                     if (lines.Length <= 1)
                     {
-                        return new TrimComment() {
+                        return new TrimComment()
+                        {
                             OriginText = comment,
                             LineCount = 1,
                             TrimedText = text.Trim()
@@ -128,7 +136,7 @@ namespace CommentTranslator.Parsers
                     builder.AppendLine(lines[0].Trim());
 
                     //Add next lines
-                    for(int i = 1; i < lines.Length; i++)
+                    for (int i = 1; i < lines.Length; i++)
                     {
                         builder.AppendLine(lines[i].Trim());
                     }
