@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -91,7 +92,6 @@ namespace CommentTranslator.Ardonment
             if (string.IsNullOrEmpty(trimComment.TrimedText))
             {
                 _isHide = true;
-                _isTranslating = false;
                 RefreshLayout(tag, _view);
             }
 
@@ -99,15 +99,18 @@ namespace CommentTranslator.Ardonment
             if (!_isTranslating && trimComment.TrimedText != _lastText)
             {
                 _isTranslating = true;
+                Debug.WriteLine("Translating true");
                 WaitTranslate(trimComment, tag.TimeWaitAfterChange);
             }
         }
 
         private void WaitTranslate(TrimComment comment, int wait)
         {
+            Debug.WriteLine("ExecuteTranslate 1");
             if (wait <= 0)
             {
                 ExecuteTranslate(comment);
+                Debug.WriteLine("ExecuteTranslate 1");
             }
             else
             {
@@ -117,10 +120,12 @@ namespace CommentTranslator.Ardonment
                         if (comment.OriginText == _tag.Text)
                         {
                             ExecuteTranslate(comment);
+                            Debug.WriteLine("ExecuteTranslate 2");
                         }
                         else
                         {
-                            WaitTranslate(comment, wait);
+                            RequestTranslate(_tag);
+                            Debug.WriteLine("ExecuteTranslate 2");
                         }
                     }, TaskScheduler.FromCurrentSynchronizationContext());
             }
@@ -131,6 +136,7 @@ namespace CommentTranslator.Ardonment
             if (CommentTranslatorPackage.TranslateClient == null || _lastText == comment.TrimedText)
             {
                 _isTranslating = false;
+                Debug.WriteLine("Translating false");
                 return;
             }
 
@@ -146,6 +152,7 @@ namespace CommentTranslator.Ardonment
                     }
 
                     this._isTranslating = false;
+                    Debug.WriteLine("Translating false");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
