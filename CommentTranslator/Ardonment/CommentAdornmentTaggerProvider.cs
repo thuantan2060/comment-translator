@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -16,6 +17,9 @@ namespace CommentTranslator.Ardonment
 #pragma warning disable 649 // "field never assigned to" -- field is set by MEF.
         [Import]
         internal IBufferTagAggregatorFactoryService BufferTagAggregatorFactoryService;
+
+        [Import]
+        internal IEditorFormatMapService FormatMapService; // MEF
 #pragma warning restore 649
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
@@ -31,8 +35,9 @@ namespace CommentTranslator.Ardonment
 
             return CommentAdornmentTagger.GetTagger(
                 (IWpfTextView)textView,
-                new Lazy<ITagAggregator<CommentTranslateTag>>(
-                    () => BufferTagAggregatorFactoryService.CreateTagAggregator<CommentTranslateTag>(textView.TextBuffer)))
+                FormatMapService.GetEditorFormatMap(textView),
+                new Lazy<ITagAggregator<IClassificationTag>>(
+                    () => BufferTagAggregatorFactoryService.CreateTagAggregator<IClassificationTag>(textView.TextBuffer)))
                 as ITagger<T>;
         }
     }
