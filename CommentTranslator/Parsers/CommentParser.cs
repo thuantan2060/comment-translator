@@ -54,7 +54,7 @@ namespace CommentTranslator.Parsers
                     {
                         if (currentTag.End.Length == 0)
                         {
-                            endIndex = text.IndexOf('\n') + 1;
+                            endIndex = text.IndexOf('\n');
                         }
                         else
                         {
@@ -76,7 +76,7 @@ namespace CommentTranslator.Parsers
                             Text = text.Substring(startIndex + currentTag.Start.Length, endIndex - startIndex - currentTag.Start.Length)
                         });
 
-                        text = text.Substring(endIndex + currentTag.End.Length);
+                        text = text.Substring(endIndex + (currentTag.End.Length > 0 ? currentTag.End.Length : 1));
                     }
                     else
                     {
