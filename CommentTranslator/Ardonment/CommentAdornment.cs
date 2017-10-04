@@ -1,7 +1,9 @@
-﻿using CommentTranslator.Support;
+﻿using CommentTranslator.Parsers;
 using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,7 +13,7 @@ using System.Windows.Shapes;
 
 namespace CommentTranslator.Ardonment
 {
-    internal enum TextPosition
+    internal enum TextPositions
     {
         Bottom,
         Right
@@ -28,23 +30,27 @@ namespace CommentTranslator.Ardonment
         private CommentTranslateTag _tag;
         private SnapshotSpan _span;
         private IWpfTextView _view;
+        private IEditorFormatMap _format;
+        private ICommentParser _parser;
 
         private bool _isTranslating = false;
+        private bool _isHide = false;
         private string _lastText;
 
         #endregion
 
         #region Contructors
 
-        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, IWpfTextView textView)
+        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format)
         {
             _tag = tag;
             _span = span;
             _view = textView;
+            _format = format;
+            _parser = CommentParserHelper.GetCommentParser(tag.ContentType.TypeName);
 
             GenerateLayout(tag, textView);
-            RefreshLayout(tag, textView);
-            RequestTranslate();
+            RequestTranslate(tag);
         }
 
         #endregion
@@ -59,95 +65,117 @@ namespace CommentTranslator.Ardonment
         {
             _tag = tag;
 
-            RequestTranslate();
+            RefreshLayout(tag, _view);
+            RequestTranslate(tag);
         }
 
         #endregion
 
         #region Functions
 
-        private void RequestTranslate()
+        private void RequestTranslate(CommentTranslateTag tag)
         {
-            if (!_isTranslating && _tag.Text != _lastText)
+            //Trim comment
+            var trimComment = new TrimComment() {
+                OriginText = tag.Text,
+                TrimedText = tag.Text,
+                LineCount = CommentHelper.LineCount(tag.Text)
+            };
+            if (_parser != null)
+            {
+                trimComment = _parser.TrimComment(tag.Text);
+            }
+
+            _isHide = false;
+            //Not translate empty comment
+            if (string.IsNullOrEmpty(trimComment.TrimedText))
+            {
+                _isHide = true;
+                _isTranslating = false;
+                RefreshLayout(tag, _view);
+            }
+
+            //Send to translate
+            if (!_isTranslating && trimComment.TrimedText != _lastText)
             {
                 _isTranslating = true;
-                WaitTranslate(_tag);
+                WaitTranslate(trimComment, tag.TimeWaitAfterChange);
             }
         }
 
-        private void WaitTranslate(CommentTranslateTag tag)
+        private void WaitTranslate(TrimComment comment, int wait)
         {
-            if (_tag.TimeWaitAfterChange <= 0)
+            if (wait <= 0)
             {
-                ExecuteTranslate(tag);
+                ExecuteTranslate(comment);
             }
             else
             {
-                Task.Delay(_tag.TimeWaitAfterChange)
+                Task.Delay(wait)
                     .ContinueWith((data) =>
                     {
-                        if (tag.Text == _tag.Text)
+                        if (comment.OriginText == _tag.Text)
                         {
-                            ExecuteTranslate(tag);
+                            ExecuteTranslate(comment);
                         }
                         else
                         {
-                            WaitTranslate(_tag);
+                            WaitTranslate(comment, wait);
                         }
                     }, TaskScheduler.FromCurrentSynchronizationContext());
             }
         }
 
-        private void ExecuteTranslate(CommentTranslateTag tag)
+        private void ExecuteTranslate(TrimComment comment)
         {
-            if (CommentTranslatorPackage.TranslateClient == null) return;
-            if (_lastText == tag.Text)
+            if (CommentTranslatorPackage.TranslateClient == null || _lastText == comment.TrimedText)
             {
                 _isTranslating = false;
                 return;
             }
 
-            _lastText = tag.Text;
-            AfterTranslate("Translating...");
+            _lastText = comment.TrimedText;
+            AfterTranslate(null, "Translating...");
 
-            Task.Run(() => CommentTranslatorPackage.TranslateClient.Translate(CommentHelper.TrimCommnentSingleline(tag.Text)))
+            Task.Run(() => CommentTranslatorPackage.TranslateClient.Translate(comment.TrimedText))
                 .ContinueWith((data) =>
                 {
                     if (!data.IsFaulted)
                     {
-                        AfterTranslate(data.Result.Data);
+                        AfterTranslate(comment, data.Result.Data);
                     }
 
                     this._isTranslating = false;
                 }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private void AfterTranslate(string translatedText)
+        private void AfterTranslate(TrimComment comment, string translatedText)
         {
             if (_textBlock != null)
             {
-                _textBlock.Text = translatedText;
+                if (comment == null)
+                {
+                    _textBlock.Text = translatedText;
+                }
+                else
+                {
+                    var line = CommentHelper.LineCount(translatedText);
+                    _textBlock.Text = new string('\n', comment.LineCount - line) + translatedText;
+                }
             }
         }
 
         private void GenerateLayout(CommentTranslateTag tag, IWpfTextView textView)
         {
             //Create origin textblock
-            _originTextBlock = new TextBlock()
-            {
-                Text = tag.Text,
-                FontSize = 12.5
-            };
-            _originTextBlock.Measure(new Size(double.MaxValue, double.MaxValue));
+            _originTextBlock = new TextBlock();
 
             //Draw lable
             _textBlock = new TextBlock()
             {
-                Foreground = Brushes.Gray,
-                FontSize = 12.5
+                Foreground = Brushes.Gray
             };
             _textBlock.MouseDown += _tblTranslatedText_MouseDown;
-            _textBlock.Measure(new Size(double.MaxValue, double.MaxValue));
 
             //Draw Line
             _line = new Line();
@@ -155,13 +183,29 @@ namespace CommentTranslator.Ardonment
             _line.StrokeThickness = 6;
             _line.SnapsToDevicePixels = true;
             _line.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            _line.X1 = 4;
-            _line.X2 = 4;
-            _line.Y1 = 4;
-            _line.Y2 = _originTextBlock.DesiredSize.Height + _line.Y1 - 2;
 
-            this.Width = 0;
-            this.Height = 0;
+            //Get format
+            var typeface = _format.GetTypeface();
+            var fontSize = _format.GetFontSize();
+            if (typeface != null)
+            {
+                //Set format for origin text block
+                _originTextBlock.FontFamily = typeface.FontFamily;
+                _originTextBlock.FontStyle = typeface.Style;
+                _originTextBlock.FontStretch = typeface.Stretch;
+                _originTextBlock.FontWeight = typeface.Weight;
+                _originTextBlock.FontSize = fontSize;
+
+                //Set format for text block
+                _textBlock.FontFamily = typeface.FontFamily;
+                _textBlock.FontStyle = typeface.Style;
+                _textBlock.FontStretch = typeface.Stretch;
+                _textBlock.FontWeight = typeface.Weight;
+                _textBlock.FontSize = fontSize;
+            }
+
+            //Refresh layout
+            RefreshLayout(tag, textView);
 
             this.Children.Add(_line);
             this.Children.Add(_textBlock);
@@ -169,49 +213,88 @@ namespace CommentTranslator.Ardonment
 
         private void RefreshLayout(CommentTranslateTag tag, IWpfTextView textView)
         {
-            _textBlock.Measure(new Size(double.MaxValue, double.MaxValue));
-            switch (GetPosition(tag.Text))
+            if (_isHide)
             {
-                case TextPosition.Bottom:
-                    {
-                        Canvas.SetTop(_textBlock, 4);
-                        Canvas.SetLeft(_textBlock, 10);
-
-                        this.Height = textView.GetLineHeight();
-                    }
-                    break;
-                case TextPosition.Right:
-                    {
-                        var top = -textView.GetLineHeight() + 4;
-                        var left = _originTextBlock.DesiredSize.Width + 4;
-
-                        Canvas.SetTop(_textBlock, top);
-                        Canvas.SetLeft(_textBlock, left);
-
-                        _line.X1 = _line.X2 = left;
-                        _line.Y1 = top - 6;
-
-                        this.Height = 0;
-                    }
-                    break;
+                this.Width = 0;
+                this.Height = 0;
+                this.Visibility = Visibility.Collapsed;
+                return;
             }
 
-            _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 - 2;
+            this.Visibility = Visibility.Visible;
+
+            //Set text
+            _originTextBlock.Text = _parser.SimpleTrimComment(tag.Text);
+
+            //Measure size
+            _originTextBlock.Measure(new Size(double.MaxValue, double.MaxValue));
+            _textBlock.Measure(new Size(double.MaxValue, double.MaxValue));
+
+            //Get position
+            switch (GetPosition(tag.Text))
+            {
+                case TextPositions.Bottom:
+                    RefreshLayoutBottom(tag, textView);
+                    break;
+                case TextPositions.Right:
+                    RefreshLayoutRight(tag, textView);
+                    break;
+            }
+        }
+
+        private void RefreshLayoutBottom(CommentTranslateTag tag, IWpfTextView textView)
+        {
+            //Set line position
+            _line.X1 = _line.X2 = 4;
+            _line.Y1 = 4;
+            _line.Y2 = _originTextBlock.DesiredSize.Height + _line.Y1 - 2;
+
+            //Set text box position
+            Canvas.SetTop(_textBlock, 4);
+            Canvas.SetLeft(_textBlock, 10);
+
+            //Set size of canvas
+            this.Height = textView.GetLineHeight();
             this.Width = 0;
         }
 
-        private TextPosition GetPosition(string text)
+        private void RefreshLayoutRight(CommentTranslateTag tag, IWpfTextView textView)
         {
-            var firstNewLine = text.IndexOf('\n');
-            var lastNewLine = text.LastIndexOf('\n');
+            //Calculate top left position
+            var top = -textView.GetLineHeight() + 4;
+            var left = _originTextBlock.DesiredSize.Width + 10;
 
-            if (firstNewLine > 0 && firstNewLine != lastNewLine)
+            //Set position of text box
+            Canvas.SetTop(_textBlock, top);
+            Canvas.SetLeft(_textBlock, left);
+
+            //Set position of line
+            _line.X1 = _line.X2 = left - 6;
+            _line.Y1 = top;
+            _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 - 2;
+
+            //Set size of canvas
+            this.Height = 0;
+            this.Width = 0;
+        }
+
+        private TextPositions GetPosition(string text)
+        {
+            if (text.IndexOf('\n') > 0)
             {
-                return TextPosition.Right;
+                //if (_originTextBlock.DesiredSize.Width > 400)
+                //{
+                //    return TextPositions.Bottom;
+                //}
+                //else
+                //{
+                //    return TextPositions.Right;
+                //}
+                return TextPositions.Right;
             }
             else
             {
-                return TextPosition.Bottom;
+                return TextPositions.Bottom;
             }
         }
 

@@ -1,9 +1,8 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using CommentTranslator.Util;
+using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace CommentTranslator.Parsers
 {
@@ -26,26 +25,6 @@ namespace CommentTranslator.Parsers
                 Debug.WriteLine("Time: " + watch.ElapsedMilliseconds);
             }
         }
-
-        //protected virtual Regex CreateRegex(IEnumerable<CommentTag> tags)
-        //{
-        //    if (tags.Count() == 0) return null;
-        //    var patternBuilder = new StringBuilder();
-
-        //    //Append tag to pattern
-        //    foreach (var tag in tags)
-        //    {
-        //        patternBuilder.Append(string.Format("|(?<{0}>{1}((?!{2}).)*{2})", tag.Name, tag.Start, tag.End));
-        //    }
-
-        //    //Remove first '|'
-        //    if (patternBuilder.Length > 0)
-        //    {
-        //        patternBuilder.Remove(0, 1);
-        //    }
-
-        //    return new Regex(patternBuilder.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        //}
 
         protected virtual IEnumerable<Comment> Parse(string text, IEnumerable<CommentTag> tags)
         {
@@ -104,6 +83,88 @@ namespace CommentTranslator.Parsers
             }
 
             return comments;
+        }
+
+        public virtual TrimComment TrimComment(string comment)
+        {
+            foreach (var tag in Tags)
+            {
+                var startIndex = comment.IndexOf(tag.Start);
+                if (startIndex >= 0)
+                {
+                    //Shif start index
+                    startIndex += tag.Start.Length;
+
+                    //Calculate end index
+                    var endIndex = tag.End.Length == 0 ? comment.Length - 1 : comment.IndexOf(tag.End);
+                    if (startIndex >= endIndex)
+                    {
+                        return new TrimComment()
+                        {
+                            OriginText = comment,
+                            LineCount = 0,
+                            TrimedText = ""
+                        };
+                    }
+
+                    //Break into lines
+                    var text = comment.Substring(startIndex, endIndex - startIndex);
+                    var lines = text.Split('\n');
+
+                    //Check if single line
+                    if (lines.Length <= 1)
+                    {
+                        return new TrimComment() {
+                            OriginText = comment,
+                            LineCount = 1,
+                            TrimedText = text.Trim()
+                        };
+                    }
+
+                    //Trim multi line comment
+                    var builder = new StringBuilder();
+
+                    //Add first line
+                    builder.AppendLine(lines[0].Trim());
+
+                    //Add next lines
+                    for(int i = 1; i < lines.Length; i++)
+                    {
+                        builder.AppendLine(lines[i].Trim());
+                    }
+
+                    var trimedText = builder.ToString().TrimEnd();
+                    return new TrimComment()
+                    {
+                        OriginText = comment,
+                        LineCount = CommentHelper.LineCount(trimedText),
+                        TrimedText = trimedText
+                    };
+                }
+            }
+
+            return new TrimComment()
+            {
+                OriginText = comment,
+                LineCount = CommentHelper.LineCount(comment),
+                TrimedText = comment
+            };
+        }
+
+        public string SimpleTrimComment(string comment)
+        {
+            var lines = comment.Split('\n');
+            var builder = new StringBuilder();
+
+            //Add first line
+            builder.AppendLine(lines[0].Trim());
+
+            //Add next lines
+            for (int i = 1; i < lines.Length; i++)
+            {
+                builder.AppendLine(lines[i].Trim());
+            }
+            return builder.ToString().TrimEnd();
         }
     }
 

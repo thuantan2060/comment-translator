@@ -1,6 +1,7 @@
 ﻿using CommentTranslator.Support;
 using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
@@ -10,28 +11,46 @@ namespace CommentTranslator.Ardonment
 {
     internal sealed class CommentAdornmentTagger : IntraTextAdornmentTagger<CommentTranslateTag, CommentAdornment>
     {
-        internal static ITagger<IntraTextAdornmentTag> GetTagger(IWpfTextView view, Lazy<ITagAggregator<IClassificationTag>> commentTagger)
+        #region Fields
+
+        internal static ITagger<IntraTextAdornmentTag> GetTagger(IWpfTextView view, IEditorFormatMap format, Lazy<ITagAggregator<IClassificationTag>> commentTagger)
         {
-            return view.Properties.GetOrCreateSingletonProperty(() => new CommentAdornmentTagger(view, commentTagger.Value));
+            return view.Properties.GetOrCreateSingletonProperty(() => new CommentAdornmentTagger(view, format, commentTagger.Value));
         }
 
         private ITagAggregator<IClassificationTag> _commentTagger;
+        private IEditorFormatMap _format;
 
-        public CommentAdornmentTagger(IWpfTextView view, ITagAggregator<IClassificationTag> commentTagger) : base(view)
+        #endregion
+
+        #region Contructors
+
+        public CommentAdornmentTagger(IWpfTextView view, IEditorFormatMap format, ITagAggregator<IClassificationTag> commentTagger) : base(view)
         {
             _commentTagger = commentTagger;
+            _format = format;
         }
+
+        #endregion
+
+        #region Properties
+
+        #endregion
+
+        #region Methods
 
         public void Dispose()
         {
             _commentTagger.Dispose();
-
-            //view.Properties.RemoveProperty(typeof(CommentTranslateTagger));
         }
+
+        #endregion
+
+        #region Functions
 
         protected override CommentAdornment CreateAdornment(CommentTranslateTag data, SnapshotSpan span)
         {
-            return new CommentAdornment(data, span, _view);
+            return new CommentAdornment(data, span, _view, _format);
         }
 
         protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTranslateTag>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
@@ -54,5 +73,19 @@ namespace CommentTranslator.Ardonment
             adornment.Update(data, span);
             return true;
         }
+
+        #endregion
+
+        #region Events
+
+        #endregion
+
+        #region EventHandlers
+
+        #endregion
+
+        #region InnerMembers
+
+        #endregion
     }
 }

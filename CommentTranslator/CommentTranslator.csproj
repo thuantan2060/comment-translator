@@ -65,8 +65,10 @@
     <Compile Include="Parsers\JavaScriptCommentParser.cs" />
     <Compile Include="Parsers\CppCommentParser.cs" />
     <Compile Include="Parsers\FSharpCommentParser.cs" />
+    <Compile Include="Parsers\TrimComment.cs" />
     <Compile Include="Parsers\XamlCommentParser.cs" />
     <Compile Include="Parsers\VBCommentParser.cs" />
+    <Compile Include="Parsers\RazorCommentParser.cs" />
     <Compile Include="Parsers\XmlCommentParser.cs" />
     <Compile Include="Parsers\CSharpCommentParser.cs" />
     <Compile Include="Parsers\ICommentParser.cs" />
@@ -77,7 +79,9 @@
     <Compile Include="Support\IntraTextAdornmentTagger.cs" />
     <Compile Include="Support\RegexMultiLineTagger.cs" />
     <Compile Include="Support\RegexTagger.cs" />
+    <Compile Include="Util\CommentParserHelper.cs" />
     <Compile Include="Util\CommentTagHelper.cs" />
+    <Compile Include="Util\EditFormatMapHelper.cs" />
     <Compile Include="Util\Settings.cs" />
     <Compile Include="Presentation\TranslatePopup.xaml.cs">
       <DependentUpon>TranslatePopup.xaml</DependentUpon>

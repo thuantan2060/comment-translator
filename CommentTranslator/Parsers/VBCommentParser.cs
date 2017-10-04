@@ -12,7 +12,7 @@ namespace CommentTranslator.Parsers
                 new CommentTag()
                 {
                     Start = "'",
-                    End = "\n",
+                    End = "",
                     Name = "singleline"
                 },
             };
