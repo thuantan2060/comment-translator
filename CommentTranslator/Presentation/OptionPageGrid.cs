@@ -31,11 +31,18 @@ namespace CommentTranslator.Option
         [Description("Auto translate comment in you open file")]
         public bool AutoTranslateComment { get; set; } = true;
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnApply(PageApplyEventArgs e)
         {
-            base.OnClosed(e);
+            base.OnApply(e);
 
-            //Reload setting
+            if (e.ApplyBehavior == ApplyKind.Apply)
+            {
+                SaveToSetting();
+            }
+        }
+
+        public void SaveToSetting()
+        {
             CommentTranslatorPackage.Settings.ReloadSetting(this);
         }
     }

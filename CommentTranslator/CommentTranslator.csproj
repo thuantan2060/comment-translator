@@ -56,6 +56,7 @@
     <Compile Include="Ardonment\CommentAdornmentTaggerProvider.cs" />
     <Compile Include="Ardonment\CommentTranslateTag.cs" />
     <Compile Include="Client\TranslateClient.cs" />
+    <Compile Include="Command\ToggleAutoTranslateCommand.cs" />
     <Compile Include="Command\TranslateCommand.cs" />
     <Compile Include="CommentTranslatorPackage.cs" />
     <Compile Include="Parsers\CommentParser.cs" />
