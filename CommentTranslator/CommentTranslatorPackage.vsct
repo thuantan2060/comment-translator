@@ -57,6 +57,13 @@
           <ButtonText>Translate</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidCommentTranslatorPackageCmdSet" id="ToggleAutoTranslatorId" priority="0x0100" type="Button">
+        <Parent guid="guidCommentTranslatorPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Toggle Auto Translate</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -124,6 +131,7 @@
 
   <KeyBindings>
     <KeyBinding guid="guidCommentTranslatorPackageCmdSet" id="CommentTranslatorId" key1="T" mod1="Control Shift" editor="guidVSStd97"/>
+    <KeyBinding guid="guidCommentTranslatorPackageCmdSet" id="ToggleAutoTranslatorId" key1="R" mod1="Control Shift" key2="R" mod2="Control Shift" editor="guidVSStd97"/>
   </KeyBindings>
 
   <Symbols>
@@ -134,6 +142,7 @@
     <GuidSymbol name="guidCommentTranslatorPackageCmdSet" value="{284ee4d1-edc6-4ed0-bf84-d45aeebf593c}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="CommentTranslatorId" value="0x0100" />
+      <IDSymbol name="ToggleAutoTranslatorId" value="0x0101" />
     </GuidSymbol>
 
     <GuidSymbol name="CMDSETID_CssEdGrp" value="{A764E896-518D-11d2-9A89-00C04F79EFC3}">

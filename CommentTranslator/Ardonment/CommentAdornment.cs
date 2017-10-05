@@ -265,7 +265,7 @@ namespace CommentTranslator.Ardonment
         {
             //Calculate top left position
             var top = -textView.GetLineHeight() + 4;
-            var left = _originTextBlock.DesiredSize.Width + 10;
+            var left = _originTextBlock.DesiredSize.Width + 20;
 
             //Set position of text box
             Canvas.SetTop(_textBlock, top);

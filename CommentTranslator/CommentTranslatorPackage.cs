@@ -75,6 +75,7 @@ namespace CommentTranslator
         protected override void Initialize()
         {
             TranslateCommand.Initialize(this);
+            ToggleAutoTranslateCommand.Initialize(this);
             base.Initialize();
 
             //Load settting
