@@ -66,7 +66,6 @@
     <Compile Include="Parsers\JavaScriptCommentParser.cs" />
     <Compile Include="Parsers\CppCommentParser.cs" />
     <Compile Include="Parsers\FSharpCommentParser.cs" />
-    <Compile Include="Parsers\TrimComment.cs" />
     <Compile Include="Parsers\XamlCommentParser.cs" />
     <Compile Include="Parsers\VBCommentParser.cs" />
     <Compile Include="Parsers\RazorCommentParser.cs" />

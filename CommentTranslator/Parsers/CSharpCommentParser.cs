@@ -35,7 +35,7 @@ namespace CommentTranslator.Parsers
             };
         }
 
-        public override TrimComment TrimComment(string comment)
+        public override string TrimComment(string comment)
         {
             foreach (var tag in Tags)
             {
@@ -49,12 +49,7 @@ namespace CommentTranslator.Parsers
                     var endIndex = tag.End.Length == 0 ? comment.Length : comment.IndexOf(tag.End);
                     if (startIndex >= endIndex)
                     {
-                        return new TrimComment()
-                        {
-                            OriginText = comment,
-                            LineCount = 0,
-                            TrimedText = ""
-                        };
+                        return "";
                     }
 
                     //Break into lines
@@ -64,12 +59,7 @@ namespace CommentTranslator.Parsers
                     //Check if single line
                     if (lines.Length <= 1)
                     {
-                        return new TrimComment()
-                        {
-                            OriginText = comment,
-                            LineCount = 1,
-                            TrimedText = text.Trim()
-                        };
+                        return text.Trim();
                     }
 
                     //Trim multi line comment
@@ -92,23 +82,21 @@ namespace CommentTranslator.Parsers
                         builder.AppendLine(line);
                     }
 
-                    var trimedText = builder.ToString().TrimEnd();
-
-                    return new TrimComment()
-                    {
-                        OriginText = comment,
-                        LineCount = CommentHelper.LineCount(trimedText),
-                        TrimedText = trimedText
-                    };
+                    return builder.ToString().TrimEnd();
                 }
             }
 
-            return new TrimComment()
+            return comment;
+        }
+
+        public override TextPositions GetPositions(string comment)
+        {
+            if (comment.TrimStart().StartsWith("///"))
             {
-                OriginText = comment,
-                LineCount = CommentHelper.LineCount(comment),
-                TrimedText = comment
-            };
+                return TextPositions.Right;
+            }
+
+            return base.GetPositions(comment);
         }
     }
 }

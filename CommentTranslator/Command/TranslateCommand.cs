@@ -115,7 +115,7 @@ namespace CommentTranslator
 
                 //Trim selected text
                 var parser = CommentParserHelper.GetCommentParser(dte.ActiveDocument.Language);
-                var selectedText = parser != null ? parser.TrimComment(selection.Text).TrimedText : selection.Text;
+                var selectedText = parser != null ? parser.GetComment(selection.Text).Trimed : selection.Text;
 
                 //Check if selection text is still empty
                 if (!string.IsNullOrEmpty(selectedText))

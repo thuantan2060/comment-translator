@@ -131,9 +131,7 @@ namespace CommentTranslator.Support
         /// </summary>
         protected void RaiseTagsChanged(SnapshotSpan span)
         {
-            var handler = TagsChanged;
-            if (handler != null)
-                handler(this, new SnapshotSpanEventArgs(span));
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
         }
 
         private void HandleLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)

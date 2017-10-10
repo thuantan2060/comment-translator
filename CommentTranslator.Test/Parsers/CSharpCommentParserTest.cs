@@ -22,7 +22,7 @@ namespace CommentTranslator.Test.Parsers
             textSnapShot.Setup(t => t.GetText(It.IsAny<Span>())).Returns(text);
 
             var parser = new CSharpCommentParser();
-            var comments = parser.GetComment(new SnapshotSpan(textSnapShot.Object, new Span()));
+            var comments = parser.GetComments(new SnapshotSpan(textSnapShot.Object, new Span()));
 
             Assert.AreEqual(commentExpect, comments.Count());
         }
