@@ -62,6 +62,9 @@ namespace CommentTranslator.Ardonment
             _tag = tag;
             _span = span;
 
+            //Refresh layout
+            RefreshLayout(_parser.GetComment(tag));
+
             //Request translate
             Translate(tag);
         }
@@ -109,17 +112,17 @@ namespace CommentTranslator.Ardonment
             }
 
             //Refresh layout
-            RefreshLayout(new TranslatedComment(_parser.GetComment(tag.Text), ""));
+            RefreshLayout(_parser.GetComment(tag));
 
             //Add to parent
             this.Children.Add(_line);
             this.Children.Add(_textBlock);
         }
 
-        private void RefreshLayout(TranslatedComment comment, bool hideOnEmpty = false)
+        private void RefreshLayout(Comment comment, bool hideOnEmpty = true)
         {
             //Hide on empty
-            if (hideOnEmpty && string.IsNullOrEmpty(comment.Translated))
+            if (hideOnEmpty && string.IsNullOrEmpty(comment.Trimmed))
             {
                 this.Visibility = Visibility.Collapsed;
             }
@@ -146,7 +149,7 @@ namespace CommentTranslator.Ardonment
             }
         }
 
-        private void RefreshLayoutBottom(TranslatedComment comment)
+        private void RefreshLayoutBottom(Comment comment)
         {
             //Set line position
             _line.X1 = _line.X2 = 4;
@@ -162,10 +165,10 @@ namespace CommentTranslator.Ardonment
             this.Width = 0;
         }
 
-        private void RefreshLayoutRight(TranslatedComment comment)
+        private void RefreshLayoutRight(Comment comment)
         {
             //Calculate top left position
-            var top = -_view.GetLineHeight() + 4;
+            var top = -_view.GetLineHeight() + 5;
             var left = _originTextBlock.DesiredSize.Width + 20;
 
             //Set position of text box
@@ -173,7 +176,7 @@ namespace CommentTranslator.Ardonment
             Canvas.SetLeft(_textBlock, left);
 
             //Set position of line
-            _line.X1 = _line.X2 = left - 6;
+            _line.X1 = _line.X2 = left - 5;
             _line.Y1 = top;
             _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 - 2;
 
@@ -186,13 +189,13 @@ namespace CommentTranslator.Ardonment
         {
             if (_parser != null)
             {
-                return _parser.GetComment(tag.Text);
+                return _parser.GetComment(tag);
             }
 
             return new Comment()
             {
                 Origin = tag.Text,
-                Trimed = tag.Text,
+                Trimmed = tag.Text,
                 Line = CommentHelper.LineCount(tag.Text),
                 Position = TextPositions.Bottom
             };
@@ -201,7 +204,7 @@ namespace CommentTranslator.Ardonment
         private bool IsHide(Comment comment)
         {
             //Not translate empty comment
-            if (string.IsNullOrEmpty(comment.Trimed))
+            if (string.IsNullOrEmpty(comment.Trimmed))
             {
                 return true;
             }
@@ -215,12 +218,13 @@ namespace CommentTranslator.Ardonment
 
         private void Translate(CommentTranslateTag tag, bool force = false)
         {
-            Debug.WriteLine("Translate force: " + force);
+            //Simple trim text
+            var trimmedText = _parser.SimpleTrimComment(tag.Text);
 
             //Set translating tag
             _translateTag = tag;
 
-            if (force || !_isTranslating)
+            if ((force || !_isTranslating) && !string.IsNullOrEmpty(trimmedText))
             {
                 //Set translating
                 _isTranslating = true;
@@ -228,6 +232,7 @@ namespace CommentTranslator.Ardonment
                 //Wait to translate
                 if (tag.TimeWaitAfterChange <= 0)
                 {
+                    _isTranslating = false;
                     StartTranslate(tag);
                 }
                 else
@@ -235,12 +240,13 @@ namespace CommentTranslator.Ardonment
                     Task.Delay(tag.TimeWaitAfterChange)
                         .ContinueWith((data) =>
                         {
-                            if (_parser.SimpleTrimComment(tag.Text) != _parser.SimpleTrimComment(_translateTag.Text))
+                            if (trimmedText != _parser.SimpleTrimComment(_translateTag.Text))
                             {
                                 Translate(_translateTag, true);
                             }
                             else
                             {
+                                _isTranslating = false;
                                 StartTranslate(tag);
                             }
                         }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -250,10 +256,8 @@ namespace CommentTranslator.Ardonment
 
         private void StartTranslate(CommentTranslateTag tag)
         {
-            Debug.WriteLine("StartTranslate");
-
-            var comment = _parser.GetComment(tag.Text);
-            if (_translatedComment == null || comment.Trimed != _translatedComment.Trimed)
+            var comment = _parser.GetComment(tag);
+            if (!string.IsNullOrEmpty(comment.Trimmed) && (_translatedComment == null || comment.Trimmed != _translatedComment.Trimmed))
             {
                 //Set translated comment
                 _translatedComment = comment;
@@ -263,12 +267,9 @@ namespace CommentTranslator.Ardonment
 
                 //Translate comment
                 Task
-                    .Run(() => CommentTranslatorPackage.TranslateClient.Translate(comment.Trimed))
+                    .Run(() => CommentTranslatorPackage.TranslateClient.Translate(comment.Trimmed))
                     .ContinueWith((data) =>
                     {
-                        //Set not translating 
-                        this._isTranslating = false;
-
                         //Call translate complete
                         if (!data.IsFaulted)
                         {
@@ -278,20 +279,12 @@ namespace CommentTranslator.Ardonment
                         {
                             TranslateComplete(new TranslatedComment(comment, data.Result.Data), data.Exception);
                         }
-
-                        
                     }, TaskScheduler.FromCurrentSynchronizationContext());
-            }
-            else
-            {
-                this._isTranslating = false;
             }
         }
 
         private void TranslateComplete(TranslatedComment comment, Exception error)
         {
-            Debug.WriteLine("TranslateComplete");
-
             if (error != null)
             {
                 _textBlock.Foreground = Brushes.Red;
@@ -300,16 +293,12 @@ namespace CommentTranslator.Ardonment
             else
             {
                 _textBlock.Foreground = Brushes.Gray;
-                _textBlock.Text = new string('\n', comment.Line - CommentHelper.LineCount(comment.Translated)) + comment.Translated;
+                _textBlock.Text = new string('\n', comment.MarginTop) + comment.Translated;
             }
-
-            RefreshLayout(comment, true);
         }
 
         private void WaitTranslate(string waitingText)
         {
-            Debug.WriteLine("WaitTranslate");
-
             _textBlock.Foreground = Brushes.Gray;
             _textBlock.Text = waitingText;
         }
@@ -331,12 +320,19 @@ namespace CommentTranslator.Ardonment
 
     internal class TranslatedComment : Comment
     {
+        public TranslatedComment(string origin, TextPositions position)
+        {
+            this.Origin = origin;
+            this.Position = position;
+        }
+
         public TranslatedComment(Comment comment, string translated)
         {
             this.Line = comment.Line;
             this.Origin = comment.Origin;
             this.Position = comment.Position;
-            this.Trimed = comment.Trimed;
+            this.Trimmed = comment.Trimmed;
+            this.MarginTop = comment.MarginTop;
             this.Tag = comment.Tag;
             this.Translated = translated;
         }

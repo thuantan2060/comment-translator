@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CommentTranslator.Util
 {
@@ -32,7 +33,7 @@ namespace CommentTranslator.Util
                     if (String.IsNullOrWhiteSpace(text))
                         continue;
 
-                    yield return new TagSpan<CommentTranslateTag>(snapshotSpan, new CommentTranslateTag(text, contentType, 200));
+                    yield return new TagSpan<CommentTranslateTag>(snapshotSpan, new CommentTranslateTag(text, contentType, tagSpan.Tag.ClassificationType, 200));
                 }
             }
         }

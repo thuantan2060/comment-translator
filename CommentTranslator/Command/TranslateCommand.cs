@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.ComponentModel.Design;
+using System.Net.Mime;
 
 namespace CommentTranslator
 {
@@ -115,7 +116,7 @@ namespace CommentTranslator
 
                 //Trim selected text
                 var parser = CommentParserHelper.GetCommentParser(dte.ActiveDocument.Language);
-                var selectedText = parser != null ? parser.GetComment(selection.Text).Trimed : selection.Text;
+                var selectedText = parser != null ? parser.GetComment(new CommentTranslateTag(selection.Text, null,null)).Trimmed : selection.Text;
 
                 //Check if selection text is still empty
                 if (!string.IsNullOrEmpty(selectedText))

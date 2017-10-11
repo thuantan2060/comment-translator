@@ -21,6 +21,14 @@ namespace CommentTranslator.Parsers
                     Start = "/*",
                     End = "*/",
                     Name = "multiline"
+                },
+
+                //Default comment
+                new CommentTag()
+                {
+                    Start = "",
+                    End = "",
+                    Name = "default"
                 }
             };
         }

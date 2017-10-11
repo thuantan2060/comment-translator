@@ -1,4 +1,5 @@
-﻿using CommentTranslator.Util;
+﻿using CommentTranslator.Ardonment;
+using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,18 +13,7 @@ namespace CommentTranslator.Parsers
 
         public virtual IEnumerable<Comment> GetComments(SnapshotSpan span)
         {
-            var watch = new Stopwatch();
-            watch.Start();
-            try
-            {
-
-                return Parse(span.GetText(), Tags);
-            }
-            finally
-            {
-                watch.Stop();
-                Debug.WriteLine("Time: " + watch.ElapsedMilliseconds);
-            }
+            return Parse(span.GetText(), Tags);
         }
 
         protected virtual IEnumerable<Comment> Parse(string text, IEnumerable<CommentTag> tags)
@@ -70,16 +60,16 @@ namespace CommentTranslator.Parsers
                     if (endIndex >= 0)
                     {
                         var originText = text.Substring(startIndex + currentTag.Start.Length, endIndex - startIndex - currentTag.Start.Length);
-                        var trimedText = TrimComment(originText);
+                        var trimmed = TrimComment(originText);
 
                         //Add comment
                         comments.Add(new Comment()
                         {
                             Tag = currentTag,
                             Origin = originText,
-                            Trimed = trimedText,
-                            Line = CommentHelper.LineCount(originText),
-                            Position = GetPositions(originText)
+                            Trimmed = trimmed.Text,
+                            Line = trimmed.Line,
+                            MarginTop = trimmed.MarginTop
                         });
 
                         text = text.Substring(endIndex + (currentTag.End.Length > 0 ? currentTag.End.Length : 1));
@@ -98,12 +88,16 @@ namespace CommentTranslator.Parsers
             return comments;
         }
 
-        public virtual Comment GetComment(string comment)
+        public virtual Comment GetComment(CommentTranslateTag comment)
         {
-            return new Comment() {
-                Origin = comment,
-                Trimed = TrimComment(comment),
-                Line = CommentHelper.LineCount(comment),
+            var trimmed = TrimComment(comment.Text);
+
+            return new Comment()
+            {
+                Origin = comment.Text,
+                Trimmed = trimmed.Text,
+                Line = trimmed.Line,
+                MarginTop = trimmed.MarginTop,
                 Position = GetPositions(comment)
             };
         }
@@ -124,9 +118,9 @@ namespace CommentTranslator.Parsers
             return builder.ToString().TrimEnd();
         }
 
-        public virtual TextPositions GetPositions(string comment)
+        public virtual TextPositions GetPositions(CommentTranslateTag comment)
         {
-            if (CommentHelper.LineCount(comment) > 1)
+            if (CommentHelper.LineCount(comment.Text) > 1)
             {
                 return TextPositions.Right;
             }
@@ -134,21 +128,26 @@ namespace CommentTranslator.Parsers
             return TextPositions.Bottom;
         }
 
-        public virtual string TrimComment(string comment)
+        public virtual TrimmedText TrimComment(string comment)
         {
             foreach (var tag in Tags)
             {
                 var startIndex = comment.IndexOf(tag.Start);
                 if (startIndex >= 0)
                 {
-                    //Shif start index
+                    //Shiff start index
                     startIndex += tag.Start.Length;
 
                     //Calculate end index
-                    var endIndex = tag.End.Length == 0 ? comment.Length - 1 : comment.IndexOf(tag.End);
+                    var endIndex = 0;
+                    if (tag.End.Length == 0)
+                        endIndex = comment.EndsWith("\n") ? comment.Length - 1 : comment.Length;
+                    else
+                        endIndex = comment.IndexOf(tag.End);
+
                     if (startIndex >= endIndex)
                     {
-                        return "";
+                        return new TrimmedText("");
                     }
 
                     //Break into lines
@@ -158,7 +157,7 @@ namespace CommentTranslator.Parsers
                     //Check if single line
                     if (lines.Length <= 1)
                     {
-                        return text.Trim();
+                        return new TrimmedText(text.Trim(), 1, 0);
                     }
 
                     //Trim multi line comment
@@ -173,11 +172,24 @@ namespace CommentTranslator.Parsers
                         builder.AppendLine(lines[i].Trim());
                     }
 
-                    return builder.ToString().TrimEnd();
+                    var trimmedComment = builder.ToString().TrimEnd();
+                    return new TrimmedText(trimmedComment, comment.EndsWith("\n") ? lines.Length - 1 : lines.Length, MarginTop(trimmedComment));
                 }
             }
 
-            return comment;
+            return new TrimmedText(comment);
+        }
+
+        protected int MarginTop(string text)
+        {
+            var lines = text.Split('\n');
+            var index = 0;
+            while (index < lines.Length && string.IsNullOrEmpty(lines[index].Trim()))
+            {
+                index++;
+            }
+
+            return index;
         }
     }
 
@@ -185,9 +197,10 @@ namespace CommentTranslator.Parsers
     {
         public CommentTag Tag { get; set; }
         public string Origin { get; set; }
-        public string Trimed { get; set; }
+        public string Trimmed { get; set; }
         public TextPositions Position { get; set; }
         public int Line { get; set; }
+        public int MarginTop { get; set; }
     }
 
     public class CommentTag
@@ -195,5 +208,25 @@ namespace CommentTranslator.Parsers
         public string Start { get; set; }
         public string End { get; set; }
         public string Name { get; set; }
+    }
+
+    public class TrimmedText
+    {
+        public string Text { get; set; }
+        public int Line { get; set; }
+        public int MarginTop { get; set; }
+
+        public TrimmedText(string text, int line, int marginTop)
+        {
+            this.Text = text;
+            this.Line = line;
+            this.MarginTop = marginTop;
+        }
+
+        public TrimmedText(string text)
+        {
+            this.Text = text;
+            this.Line = CommentHelper.LineCount(text);
+        }
     }
 }

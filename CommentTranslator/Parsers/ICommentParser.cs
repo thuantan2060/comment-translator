@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using CommentTranslator.Ardonment;
+using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 
 namespace CommentTranslator.Parsers
@@ -12,9 +13,9 @@ namespace CommentTranslator.Parsers
     public interface ICommentParser
     {
         IEnumerable<Comment> GetComments(SnapshotSpan span);
-        Comment GetComment(string comment);
-        string TrimComment(string comment);
+        Comment GetComment(CommentTranslateTag comment);
+        TrimmedText TrimComment(string comment);
         string SimpleTrimComment(string comment);
-        TextPositions GetPositions(string comment);
+        TextPositions GetPositions(CommentTranslateTag comment);
     }
 }

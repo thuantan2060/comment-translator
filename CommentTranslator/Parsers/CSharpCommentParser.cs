@@ -1,4 +1,6 @@
-﻿using CommentTranslator.Util;
+﻿using CommentTranslator.Ardonment;
+using CommentTranslator.Util;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -35,7 +37,7 @@ namespace CommentTranslator.Parsers
             };
         }
 
-        public override string TrimComment(string comment)
+        public override TrimmedText TrimComment(string comment)
         {
             foreach (var tag in Tags)
             {
@@ -49,7 +51,7 @@ namespace CommentTranslator.Parsers
                     var endIndex = tag.End.Length == 0 ? comment.Length : comment.IndexOf(tag.End);
                     if (startIndex >= endIndex)
                     {
-                        return "";
+                        return new TrimmedText("");
                     }
 
                     //Break into lines
@@ -59,7 +61,7 @@ namespace CommentTranslator.Parsers
                     //Check if single line
                     if (lines.Length <= 1)
                     {
-                        return text.Trim();
+                        return new TrimmedText(text.Trim(), 1,0);
                     }
 
                     //Trim multi line comment
@@ -82,16 +84,17 @@ namespace CommentTranslator.Parsers
                         builder.AppendLine(line);
                     }
 
-                    return builder.ToString().TrimEnd();
+                    var trimmedComment = builder.ToString().TrimEnd();
+                    return new TrimmedText(trimmedComment, lines.Length, MarginTop(trimmedComment));
                 }
             }
 
-            return comment;
+            return new TrimmedText(comment);
         }
 
-        public override TextPositions GetPositions(string comment)
+        public override TextPositions GetPositions(CommentTranslateTag comment)
         {
-            if (comment.TrimStart().StartsWith("///"))
+            if (comment.ClassificationType?.Classification.IndexOf("doc", StringComparison.OrdinalIgnoreCase) > 0)
             {
                 return TextPositions.Right;
             }
