@@ -1,4 +1,5 @@
 ﻿using CommentTranslator.Parsers;
+using CommentTranslator.Support;
 using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -14,7 +15,7 @@ using System.Windows.Shapes;
 
 namespace CommentTranslator.Ardonment
 {
-    internal sealed class CommentAdornment : Canvas
+    internal sealed class CommentAdornment : Canvas, IAdornment
     {
         #region Fields
 
@@ -36,13 +37,15 @@ namespace CommentTranslator.Ardonment
 
         #region Contructors
 
-        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format)
+        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format, SnapshotSpan originSpan)
         {
             _tag = tag;
             _span = span;
             _view = textView;
             _format = format;
             _parser = CommentParserHelper.GetCommentParser(tag.ContentType.TypeName);
+
+            Span = originSpan;
 
             GenerateLayout(tag);
             Translate(tag);
@@ -52,15 +55,18 @@ namespace CommentTranslator.Ardonment
 
         #region Properties
 
+        public SnapshotSpan Span { get; private set; }
+
         #endregion
 
         #region Methods
 
-        public void Update(CommentTranslateTag tag, SnapshotSpan span)
+        public void Update(CommentTranslateTag tag, SnapshotSpan span, SnapshotSpan originSpan)
         {
             //Set properties
             _tag = tag;
             _span = span;
+            Span = originSpan;
 
             //Refresh layout
             RefreshLayout(_parser.GetComment(tag));
