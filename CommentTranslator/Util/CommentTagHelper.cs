@@ -3,18 +3,20 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CommentTranslator.Util
 {
     internal static class CommentTagHelper
     {
-        public static IEnumerable<ITagSpan<CommentTranslateTag>> GetCommentTag(this ITagAggregator<IClassificationTag> aggregator, NormalizedSnapshotSpanCollection spans)
+        public static IEnumerable<ITagSpan<CommentTag>> GetCommentTag(this ITagAggregator<IClassificationTag> aggregator, NormalizedSnapshotSpanCollection spans)
         {
             //Get snapshot
             var snapshot = spans[0].Snapshot;
             var contentType = snapshot.TextBuffer.ContentType;
             if (!(contentType.IsOfType("code") || contentType.IsOfType("projection")))
+                yield break;
+
+            if (CommentParserHelper.GetCommentParser(contentType.TypeName) == null)
                 yield break;
 
             foreach (var tagSpan in aggregator.GetTags(spans))
@@ -33,7 +35,7 @@ namespace CommentTranslator.Util
                     if (String.IsNullOrWhiteSpace(text))
                         continue;
 
-                    yield return new TagSpan<CommentTranslateTag>(snapshotSpan, new CommentTranslateTag(text, contentType, tagSpan.Tag.ClassificationType, 200));
+                    yield return new TagSpan<CommentTag>(snapshotSpan, new CommentTag(text, contentType, tagSpan.Tag.ClassificationType, 200));
                 }
             }
         }

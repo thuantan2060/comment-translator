@@ -52,9 +52,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Ardonment\CommentAdornment.cs" />
     <Compile Include="Ardonment\CommentAdornmentTagger.cs" />
     <Compile Include="Ardonment\CommentAdornmentTaggerProvider.cs" />
-    <Compile Include="Ardonment\CommentTranslateTag.cs" />
+    <Compile Include="Ardonment\CommentTag.cs" />
+    <Compile Include="Ardonment\CommentTagger.cs" />
+    <Compile Include="Ardonment\CommentTaggerProvider.cs" />
+    <Compile Include="Ardonment\OutliningTagger.cs" />
+    <Compile Include="Ardonment\OutliningTaggerProvider.cs" />
     <Compile Include="Client\TranslateClient.cs" />
     <Compile Include="Command\ToggleAutoTranslateCommand.cs" />
     <Compile Include="Command\TranslateCommand.cs" />
@@ -75,7 +80,6 @@
     <Compile Include="Presentation\OptionPageGrid.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Ardonment\CommentAdornment.cs" />
     <Compile Include="Support\IntraTextAdornmentTagger.cs" />
     <Compile Include="Support\RegexMultiLineTagger.cs" />
     <Compile Include="Support\RegexTagger.cs" />

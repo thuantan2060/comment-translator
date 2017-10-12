@@ -1,6 +1,4 @@
-﻿using CommentTranslator.Ardonment;
-using CommentTranslator.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,7 +14,7 @@ namespace CommentTranslator.Parsers
                 new CommentTag()
                 {
                     Start = "///",
-                    End = "",
+                    End = "\n",
                     Name = "xmldoc"
                 },
 
@@ -24,7 +22,7 @@ namespace CommentTranslator.Parsers
                 new CommentTag()
                 {
                     Start = "//",
-                    End = "",
+                    End = "\n",
                     Name = "singleline"
                 },
 
@@ -44,11 +42,16 @@ namespace CommentTranslator.Parsers
                 var startIndex = comment.IndexOf(tag.Start);
                 if (startIndex >= 0)
                 {
-                    //Shif start index
+                    //Shiff start index
                     startIndex += tag.Start.Length;
 
                     //Calculate end index
-                    var endIndex = tag.End.Length == 0 ? comment.Length : comment.IndexOf(tag.End);
+                    var endIndex = 0;
+                    if (tag.End.Length == 0)
+                        endIndex = comment.EndsWith("\n") ? comment.Length - 1 : comment.Length;
+                    else
+                        endIndex = comment.IndexOf(tag.End);
+
                     if (startIndex >= endIndex)
                     {
                         return new TrimmedText("");
@@ -61,7 +64,7 @@ namespace CommentTranslator.Parsers
                     //Check if single line
                     if (lines.Length <= 1)
                     {
-                        return new TrimmedText(text.Trim(), 1,0);
+                        return new TrimmedText(text.Trim(), 1, 0);
                     }
 
                     //Trim multi line comment
@@ -92,7 +95,7 @@ namespace CommentTranslator.Parsers
             return new TrimmedText(comment);
         }
 
-        public override TextPositions GetPositions(CommentTranslateTag comment)
+        public override TextPositions GetPositions(Ardonment.CommentTag comment)
         {
             if (comment.ClassificationType?.Classification.IndexOf("doc", StringComparison.OrdinalIgnoreCase) > 0)
             {

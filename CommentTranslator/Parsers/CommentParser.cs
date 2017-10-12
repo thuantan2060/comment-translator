@@ -1,8 +1,6 @@
-﻿using CommentTranslator.Ardonment;
-using CommentTranslator.Util;
+﻿using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace CommentTranslator.Parsers
@@ -11,109 +9,108 @@ namespace CommentTranslator.Parsers
     {
         protected IEnumerable<CommentTag> Tags { get; set; }
 
-        public virtual IEnumerable<Comment> GetComments(SnapshotSpan span)
-        {
-            return Parse(span.GetText(), Tags);
-        }
 
-        protected virtual IEnumerable<Comment> Parse(string text, IEnumerable<CommentTag> tags)
-        {
-            var comments = new List<Comment>();
+        //protected virtual IEnumerable<CommentRegion> Parse(string text, IEnumerable<CommentTag> tags)
+        //{
+        //    var comments = new List<Comment>();
 
-            while (text.Length > 0)
-            {
-                //Find first start tag
-                CommentTag currentTag = null;
-                int startIndex = int.MaxValue;
-                foreach (var tag in tags)
-                {
-                    var index = text.IndexOf(tag.Start);
-                    if (index >= 0 && index < startIndex)
-                    {
-                        currentTag = tag;
-                        startIndex = index;
-                    }
-                }
+        //    while (text.Length > 0)
+        //    {
+        //        //Find first start tag
+        //        CommentTag currentTag = null;
+        //        int startIndex = int.MaxValue;
+        //        foreach (var tag in tags)
+        //        {
+        //            var index = text.IndexOf(tag.Start);
+        //            if (index >= 0 && index < startIndex)
+        //            {
+        //                currentTag = tag;
+        //                startIndex = index;
+        //            }
+        //        }
 
-                //Check if found start tag
-                if (currentTag != null)
-                {
-                    //Find first end tag
-                    var endIndex = 0;
-                    if (currentTag.Start != currentTag.End)
-                    {
-                        if (currentTag.End.Length == 0)
-                        {
-                            endIndex = text.IndexOf('\n');
-                        }
-                        else
-                        {
-                            endIndex = text.IndexOf(currentTag.End);
-                        }
-                    }
-                    else
-                    {
-                        endIndex = text.Substring(startIndex + currentTag.Start.Length).IndexOf(currentTag.End);
-                    }
+        //        //Check if found start tag
+        //        if (currentTag != null)
+        //        {
+        //            //Cut text
+        //            text = text.Substring(startIndex + currentTag.Start.Length);
 
-                    //Check if found end tag
-                    if (endIndex >= 0)
-                    {
-                        var originText = text.Substring(startIndex + currentTag.Start.Length, endIndex - startIndex - currentTag.Start.Length);
-                        var trimmed = TrimComment(originText);
+        //            //Find first end tag
+        //            var endIndex = 0;
+        //            if (currentTag.Start != currentTag.End)
+        //            {
+        //                if (currentTag.End.Length == 0)
+        //                {
+        //                    endIndex = text.IndexOf('\n');
+        //                }
+        //                else
+        //                {
+        //                    endIndex = text.IndexOf(currentTag.End);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                endIndex = text.IndexOf(currentTag.End);
+        //            }
 
-                        //Add comment
-                        comments.Add(new Comment()
-                        {
-                            Tag = currentTag,
-                            Origin = originText,
-                            Trimmed = trimmed.Text,
-                            Line = trimmed.Line,
-                            MarginTop = trimmed.MarginTop
-                        });
+        //            //Check if found end tag
+        //            if (endIndex >= 0)
+        //            {
+        //                var originText = text.Substring(0, endIndex);
+        //                var trimmed = TrimComment(originText);
 
-                        text = text.Substring(endIndex + (currentTag.End.Length > 0 ? currentTag.End.Length : 1));
-                    }
-                    else
-                    {
-                        text = "";
-                    }
-                }
-                else
-                {
-                    text = "";
-                }
-            }
+        //                //Add comment
+        //                comments.Add(new Comment()
+        //                {
+        //                    Tag = currentTag,
+        //                    Origin = originText,
+        //                    Trimmed = trimmed.Text,
+        //                    Line = trimmed.Line,
+        //                    MarginTop = trimmed.MarginTop
+        //                });
 
-            return comments;
-        }
+        //                text = text.Substring(endIndex + (currentTag.End.Length > 0 ? currentTag.End.Length : 1));
+        //            }
+        //            else
+        //            {
+        //                text = "";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            text = "";
+        //        }
+        //    }
 
-        public virtual Comment GetComment(CommentTranslateTag comment)
-        {
-            if (IsValidComment(comment.Text))
-            {
-                var trimmed = TrimComment(comment.Text);
-                return new Comment()
-                {
-                    Origin = comment.Text,
-                    Trimmed = trimmed.Text,
-                    Line = trimmed.Line,
-                    MarginTop = trimmed.MarginTop,
-                    Position = GetPositions(comment)
-                };
-            }
+        //    return comments;
+        //}
 
-            return new Comment()
-            {
-                Origin = comment.Text,
-                Trimmed = "",
-                Line = 1,
-                MarginTop = 0,
-                Position = GetPositions(comment)
-            };
-        }
+        //public virtual Comment GetComment(Ardonment.CommentTag comment)
+        //{
+        //    if (IsValidComment(comment.Text))
+        //    {
+        //        var trimmed = TrimComment(comment.Text);
+        //        return new Comment()
+        //        {
+        //            Origin = comment.Text,
+        //            Trimmed = trimmed.Text,
+        //            Line = trimmed.Line,
+        //            MarginTop = trimmed.MarginTop,
+        //            Position = GetPositions(comment)
+        //        };
+        //    }
 
-        public virtual string SimpleTrimComment(string comment)
+        //    return new Comment()
+        //    {
+        //        Origin = comment.Text,
+        //        Trimmed = "",
+        //        Line = 1,
+        //        MarginTop = 0,
+        //        Position = GetPositions(comment)
+        //    };
+        //}
+
+        public virtual string TrimCommentLines(string comment)
         {
             var lines = comment.Split('\n');
             var builder = new StringBuilder();
@@ -129,7 +126,7 @@ namespace CommentTranslator.Parsers
             return builder.ToString().TrimEnd();
         }
 
-        public virtual TextPositions GetPositions(CommentTranslateTag comment)
+        public virtual TextPositions GetPositions(Ardonment.CommentTag comment)
         {
             if (CommentHelper.LineCount(comment.Text) > 1)
             {
@@ -141,6 +138,28 @@ namespace CommentTranslator.Parsers
 
         public virtual TrimmedText TrimComment(string comment)
         {
+            //var lines = comment.Split('\n');
+
+            ////Check if single line
+            //if (lines.Length <= 1)
+            //{
+            //    return new TrimmedText(comment.Trim(), 1, 0);
+            //}
+
+            ////Trim multi line comment
+            //var builder = new StringBuilder();
+
+            ////Add first line
+            //builder.AppendLine(lines[0].Trim());
+
+            ////Add next lines
+            //for (int i = 1; i < lines.Length; i++)
+            //{
+            //    builder.AppendLine(lines[i].Trim());
+            //}
+
+            //var trimmedComment = builder.ToString().TrimEnd();
+            //return new TrimmedText(trimmedComment, comment.EndsWith("\n") ? lines.Length - 1 : lines.Length, MarginTop(trimmedComment));
             foreach (var tag in Tags)
             {
                 var startIndex = comment.IndexOf(tag.Start);
@@ -188,10 +207,10 @@ namespace CommentTranslator.Parsers
                 }
             }
 
-            return new TrimmedText("");
+            return new TrimmedText(comment);
         }
 
-        protected int MarginTop(string text)
+        protected virtual int MarginTop(string text)
         {
             var lines = text.Split('\n');
             var index = 0;
@@ -203,17 +222,112 @@ namespace CommentTranslator.Parsers
             return index;
         }
 
-        public bool IsValidComment(string comment)
+        public IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot)
         {
-            foreach(var tag in Tags)
+            return GetCommentRegions(snapshot, Tags);
+        }
+
+        protected virtual IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, IEnumerable<CommentTag> tags)
+        {
+            var comments = new List<CommentRegion>();
+            var text = snapshot.GetText();
+            var offset = 0;
+
+            while (text.Length > 0)
             {
-                if (comment.StartsWith(tag.Start) && comment.EndsWith(tag.End))
+                //Find first start tag
+                var indexTags = GetIndexTags(text, tags);
+
+                //Stop if not found tag
+                if (indexTags == null) break;
+
+                //Try for each tag
+                foreach (var tag in indexTags.Tags)
                 {
-                    return true;
+                    var trimStart = text.Substring(indexTags.Index + tag.Start.Length);
+
+                    //Find end index
+                    var endIndex = 0;
+                    if (tag.Start != tag.End)
+                    {
+                        endIndex = trimStart.IndexOf(tag.End);
+                    }
+                    else
+                    {
+                        endIndex = trimStart.IndexOf(tag.End);
+                    }
+
+                    //Found end index
+                    if (endIndex >= 0)
+                    {
+                        var commentRegion = new CommentRegion()
+                        {
+                            Start = offset + indexTags.Index,
+                            Length = tag.Start.Length + endIndex + tag.End.Length
+                        };
+
+                        offset = commentRegion.Start + commentRegion.Length;
+                        text = trimStart.Substring(endIndex + tag.End.Length);
+                        comments.Add(commentRegion);
+
+                        break;
+                    }
                 }
             }
 
-            return false;
+            return comments;
+        }
+
+        //public bool IsValidComment(string comment)
+        //{
+        //    foreach (var tag in Tags)
+        //    {
+        //        if (comment.StartsWith(tag.Start) && comment.EndsWith(tag.End))
+        //        {
+        //            return true;
+        //        }
+        //    }
+
+        //    return false;
+        //}
+
+        private IndexTags GetIndexTags(string text, IEnumerable<CommentTag> tags)
+        {
+            var indexTagsDic = new Dictionary<int, IndexTags>();
+            int minIndex = int.MaxValue;
+
+            foreach (var tag in tags)
+            {
+                var index = text.IndexOf(tag.Start);
+                if (index >= 0 && index <= minIndex)
+                {
+                    minIndex = index;
+
+                    if (indexTagsDic.ContainsKey(index))
+                    {
+                        indexTagsDic[index].Tags.Add(tag);
+                    }
+                    else
+                    {
+                        indexTagsDic.Add(index, new IndexTags()
+                        {
+                            Index = index,
+                            Tags = new List<CommentTag>()
+                            {
+                                tag
+                            }
+                        });
+                    }
+                }
+            }
+
+            return indexTagsDic.ContainsKey(minIndex) ? indexTagsDic[minIndex] : null;
+        }
+
+        private class IndexTags
+        {
+            public int Index { get; set; }
+            public List<CommentTag> Tags { get; set; }
         }
     }
 
@@ -225,6 +339,8 @@ namespace CommentTranslator.Parsers
         public TextPositions Position { get; set; }
         public int Line { get; set; }
         public int MarginTop { get; set; }
+        public int Start { get; set; }
+        public int End { get; set; }
     }
 
     public class CommentTag

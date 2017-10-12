@@ -1,5 +1,4 @@
 ﻿using CommentTranslator.Support;
-using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -9,23 +8,23 @@ using System.Collections.Generic;
 
 namespace CommentTranslator.Ardonment
 {
-    internal sealed class CommentAdornmentTagger : IntraTextAdornmentTagger<CommentTranslateTag, CommentAdornment>
+    internal sealed class CommentAdornmentTagger : IntraTextAdornmentTagger<CommentTag, CommentAdornment>
     {
         #region Fields
 
-        internal static ITagger<IntraTextAdornmentTag> GetTagger(IWpfTextView view, IEditorFormatMap format, Lazy<ITagAggregator<IClassificationTag>> commentTagger)
+        internal static ITagger<IntraTextAdornmentTag> GetTagger(IWpfTextView view, IEditorFormatMap format, Lazy<ITagAggregator<CommentTag>> commentTagger)
         {
             return view.Properties.GetOrCreateSingletonProperty(() => new CommentAdornmentTagger(view, format, commentTagger.Value));
         }
 
-        private ITagAggregator<IClassificationTag> _commentTagger;
+        private ITagAggregator<CommentTag> _commentTagger;
         private IEditorFormatMap _format;
 
         #endregion
 
         #region Contructors
 
-        public CommentAdornmentTagger(IWpfTextView view, IEditorFormatMap format, ITagAggregator<IClassificationTag> commentTagger) : base(view)
+        public CommentAdornmentTagger(IWpfTextView view, IEditorFormatMap format, ITagAggregator<CommentTag> commentTagger) : base(view)
         {
             _commentTagger = commentTagger;
             _format = format;
@@ -48,19 +47,19 @@ namespace CommentTranslator.Ardonment
 
         #region Functions
 
-        protected override CommentAdornment CreateAdornment(CommentTranslateTag data, SnapshotSpan span, SnapshotSpan originSpan)
+        protected override CommentAdornment CreateAdornment(CommentTag data, SnapshotSpan span, SnapshotSpan originSpan)
         {
             return new CommentAdornment(data, span, _view, _format, originSpan);
         }
 
-        protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTranslateTag, SnapshotSpan>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
+        protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTag, SnapshotSpan>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
         {
             if (spans.Count == 0)
                 yield break;
 
-            var commentTags = _commentTagger.GetCommentTag(spans);
+            var commentTags = _commentTagger.GetTags(spans);
 
-            foreach (ITagSpan<CommentTranslateTag> dataTagSpan in commentTags)
+            foreach (ITagSpan<CommentTag> dataTagSpan in commentTags)
             {
                 SnapshotSpan adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Start, 0);
 
@@ -68,7 +67,7 @@ namespace CommentTranslator.Ardonment
             }
         }
 
-        protected override bool UpdateAdornment(CommentAdornment adornment, CommentTranslateTag data, SnapshotSpan span, SnapshotSpan originSpan)
+        protected override bool UpdateAdornment(CommentAdornment adornment, CommentTag data, SnapshotSpan span, SnapshotSpan originSpan)
         {
             adornment.Update(data, span, originSpan);
             return true;

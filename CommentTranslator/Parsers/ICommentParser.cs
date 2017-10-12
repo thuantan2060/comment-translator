@@ -1,5 +1,4 @@
-﻿using CommentTranslator.Ardonment;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 
 namespace CommentTranslator.Parsers
@@ -12,11 +11,17 @@ namespace CommentTranslator.Parsers
 
     public interface ICommentParser
     {
-        IEnumerable<Comment> GetComments(SnapshotSpan span);
-        Comment GetComment(CommentTranslateTag comment);
+        IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot);
+        //Comment GetComment(Ardonment.CommentTag comment);
         TrimmedText TrimComment(string comment);
-        string SimpleTrimComment(string comment);
-        TextPositions GetPositions(CommentTranslateTag comment);
-        bool IsValidComment(string comment);
+        string TrimCommentLines(string comment);
+        TextPositions GetPositions(Ardonment.CommentTag comment);
+        //bool IsValidComment(string comment);
+    }
+
+    public class CommentRegion
+    {
+        public int Start { get; set; }
+        public int Length { get; set; }
     }
 }

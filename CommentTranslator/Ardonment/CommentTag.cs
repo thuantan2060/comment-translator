@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace CommentTranslator.Ardonment
 {
-    public class CommentTranslateTag : ITag
+    public class CommentTag : ITag
     {
         public string Text { get; set; }
         public int TimeWaitAfterChange { get; set; }
@@ -12,7 +12,7 @@ namespace CommentTranslator.Ardonment
 
         public IClassificationType ClassificationType { get; set; }
 
-        public CommentTranslateTag(string text, IContentType contentType, IClassificationType classificationType, int timeWaitAfterChange = 0)
+        public CommentTag(string text, IContentType contentType, IClassificationType classificationType, int timeWaitAfterChange = 0)
         {
             Text = text;
             ContentType = contentType;

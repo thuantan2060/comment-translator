@@ -4,9 +4,7 @@ using CommentTranslator.Util;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,7 +21,7 @@ namespace CommentTranslator.Ardonment
         private TextBlock _textBlock;
         private Line _line;
 
-        private CommentTranslateTag _tag;
+        private CommentTag _tag;
         private SnapshotSpan _span;
         private IWpfTextView _view;
         private IEditorFormatMap _format;
@@ -31,14 +29,14 @@ namespace CommentTranslator.Ardonment
 
         private int _id = new Random().Next();
         private bool _isTranslating;
-        private CommentTranslateTag _translateTag;
+        private CommentTag _translateTag;
         private Comment _translatedComment;
 
         #endregion
 
         #region Contructors
 
-        public CommentAdornment(CommentTranslateTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format, SnapshotSpan originSpan)
+        public CommentAdornment(CommentTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format, SnapshotSpan originSpan)
         {
             _tag = tag;
             _span = span;
@@ -62,12 +60,12 @@ namespace CommentTranslator.Ardonment
 
         #region Methods
 
-        public void Update(CommentTranslateTag tag, SnapshotSpan span, SnapshotSpan originSpan)
+        public void Update(CommentTag tag, SnapshotSpan span, SnapshotSpan originSpan)
         {
             if (tag.Text != _tag.Text)
             {
                 //Refresh layout
-                RefreshLayout(_parser.GetComment(tag));
+                //RefreshLayout(_parser.GetComment(tag));
 
                 //Request translate
                 Translate(tag);
@@ -83,7 +81,7 @@ namespace CommentTranslator.Ardonment
 
         #region Functions
 
-        private void GenerateLayout(CommentTranslateTag tag)
+        private void GenerateLayout(CommentTag tag)
         {
             //Create origin textblock
             _originTextBlock = new TextBlock();
@@ -122,7 +120,7 @@ namespace CommentTranslator.Ardonment
             }
 
             //Refresh layout
-            RefreshLayout(_parser.GetComment(tag));
+            //RefreshLayout(_parser.GetComment(tag));
 
             //Add to parent
             this.Children.Add(_line);
@@ -195,11 +193,11 @@ namespace CommentTranslator.Ardonment
             this.Width = 0;
         }
 
-        private Comment ConvertToComment(CommentTranslateTag tag)
+        private Comment ConvertToComment(CommentTag tag)
         {
             if (_parser != null)
             {
-                return _parser.GetComment(tag);
+                //return _parser.GetComment(tag);
             }
 
             return new Comment()
@@ -226,10 +224,10 @@ namespace CommentTranslator.Ardonment
 
         #region Translate functions
 
-        private void Translate(CommentTranslateTag tag, bool force = false)
+        private void Translate(CommentTag tag, bool force = false)
         {
             //Simple trim text
-            var trimmedText = _parser.SimpleTrimComment(tag.Text);
+            var trimmedText = _parser.TrimCommentLines(tag.Text);
 
             //Set translating tag
             _translateTag = tag;
@@ -250,7 +248,7 @@ namespace CommentTranslator.Ardonment
                     Task.Delay(tag.TimeWaitAfterChange)
                         .ContinueWith((data) =>
                         {
-                            if (trimmedText != _parser.SimpleTrimComment(_translateTag.Text))
+                            if (trimmedText != _parser.TrimCommentLines(_translateTag.Text))
                             {
                                 Translate(_translateTag, true);
                             }
@@ -264,33 +262,33 @@ namespace CommentTranslator.Ardonment
             }
         }
 
-        private void StartTranslate(CommentTranslateTag tag)
+        private void StartTranslate(CommentTag tag)
         {
-            var comment = _parser.GetComment(tag);
-            if (!string.IsNullOrEmpty(comment.Trimmed) && (_translatedComment == null || comment.Trimmed != _translatedComment.Trimmed))
-            {
-                //Set translated comment
-                _translatedComment = comment;
+            //var comment = _parser.GetComment(tag);
+            //if (!string.IsNullOrEmpty(comment.Trimmed) && (_translatedComment == null || comment.Trimmed != _translatedComment.Trimmed))
+            //{
+            //    //Set translated comment
+            //    _translatedComment = comment;
 
-                //Display wait translate
-                WaitTranslate("Translating...");
+            //    //Display wait translate
+            //    WaitTranslate("Translating...");
 
-                //Translate comment
-                Task
-                    .Run(() => CommentTranslatorPackage.TranslateClient.Translate(comment.Trimmed))
-                    .ContinueWith((data) =>
-                    {
-                        //Call translate complete
-                        if (!data.IsFaulted)
-                        {
-                            TranslateComplete(new TranslatedComment(comment, data.Result.Data), null);
-                        }
-                        else
-                        {
-                            TranslateComplete(new TranslatedComment(comment, data.Result.Data), data.Exception);
-                        }
-                    }, TaskScheduler.FromCurrentSynchronizationContext());
-            }
+            //    //Translate comment
+            //    Task
+            //        .Run(() => CommentTranslatorPackage.TranslateClient.Translate(comment.Trimmed))
+            //        .ContinueWith((data) =>
+            //        {
+            //            //Call translate complete
+            //            if (!data.IsFaulted)
+            //            {
+            //                TranslateComplete(new TranslatedComment(comment, data.Result.Data), null);
+            //            }
+            //            else
+            //            {
+            //                TranslateComplete(new TranslatedComment(comment, data.Result.Data), data.Exception);
+            //            }
+            //        }, TaskScheduler.FromCurrentSynchronizationContext());
+            //}
         }
 
         private void TranslateComplete(TranslatedComment comment, Exception error)

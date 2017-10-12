@@ -9,13 +9,13 @@
 //
 //***************************************************************************
 
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 
 namespace CommentTranslator.Support
 {
@@ -194,7 +194,7 @@ namespace CommentTranslator.Support
                     toRemove.Add(ar.Key);
 
             //Remove interset spans
-            var filterSpans = new List<SnapshotSpan>(spans);
+            //var filterSpans = new List<SnapshotSpan>(spans);
             //foreach (var span in spans)
             //{
             //    foreach (var adornment in _adornmentCache)
@@ -214,7 +214,7 @@ namespace CommentTranslator.Support
             //    }
             //}
 
-            foreach (var spanDataPair in GetAdornmentData(new NormalizedSnapshotSpanCollection(filterSpans)).Distinct(new Comparer()))
+            foreach (var spanDataPair in GetAdornmentData(spans).Distinct(new Comparer()))
             {
                 // Look up the corresponding adornment or create one if it's new.
                 TAdornment adornment;
