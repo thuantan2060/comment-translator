@@ -29,6 +29,7 @@ namespace CommentTranslator.Ardonment
         private IEditorFormatMap _format;
         private ICommentParser _parser;
 
+        private int _id = new Random().Next();
         private bool _isTranslating;
         private CommentTranslateTag _translateTag;
         private Comment _translatedComment;
@@ -63,16 +64,19 @@ namespace CommentTranslator.Ardonment
 
         public void Update(CommentTranslateTag tag, SnapshotSpan span, SnapshotSpan originSpan)
         {
+            if (tag.Text != _tag.Text)
+            {
+                //Refresh layout
+                RefreshLayout(_parser.GetComment(tag));
+
+                //Request translate
+                Translate(tag);
+            }
+
             //Set properties
             _tag = tag;
             _span = span;
             Span = originSpan;
-
-            //Refresh layout
-            RefreshLayout(_parser.GetComment(tag));
-
-            //Request translate
-            Translate(tag);
         }
 
         #endregion
@@ -183,8 +187,8 @@ namespace CommentTranslator.Ardonment
 
             //Set position of line
             _line.X1 = _line.X2 = left - 5;
-            _line.Y1 = top;
-            _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 - 2;
+            _line.Y1 = top - 1;
+            _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 + 1;
 
             //Set size of canvas
             this.Height = 0;

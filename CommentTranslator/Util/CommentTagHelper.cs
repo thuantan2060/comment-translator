@@ -14,7 +14,7 @@ namespace CommentTranslator.Util
             //Get snapshot
             var snapshot = spans[0].Snapshot;
             var contentType = snapshot.TextBuffer.ContentType;
-            if (!contentType.IsOfType("code"))
+            if (!(contentType.IsOfType("code") || contentType.IsOfType("projection")))
                 yield break;
 
             foreach (var tagSpan in aggregator.GetTags(spans))
