@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using CommentTranslator.Ardonment;
+﻿using CommentTranslator.Ardonment;
+using System.Collections.Generic;
 
 namespace CommentTranslator.Parsers
 {
@@ -21,7 +20,7 @@ namespace CommentTranslator.Parsers
                 },
                 new CommentTag()
                 {
-                    Start = "",
+                    Start = "//",
                     End = "",
                     Name = "comment"
                 },
@@ -51,32 +50,14 @@ namespace CommentTranslator.Parsers
             };
         }
 
-        public override TrimmedText TrimComment(string comment)
-        {
-            foreach (var tag in _trimTags)
-            {
-                if (comment == tag.Start || comment == tag.End)
-                {
-                    return new TrimmedText("");
-                }
-            }
-
-            if (comment.StartsWith("/*") && comment.EndsWith("*/")) return base.TrimComment(comment);
-
-            foreach (var tag in _removeTags)
-            {
-                if (comment.StartsWith(tag.Start) && comment.EndsWith(tag.End))
-                {
-                    return new TrimmedText("");
-                }
-            }
-
-            return base.TrimComment(comment);
-        }
-
         public override Comment GetComment(CommentTranslateTag comment)
         {
-            if (comment.Text.StartsWith("/*") && comment.Text.EndsWith("")) comment.Text+="*/";
+            if (comment.Text.StartsWith("/*") && comment.Text.EndsWith("")) comment.Text += "*/";
+            if (!comment.Text.StartsWith("/*") && !comment.Text.EndsWith("*/") && !comment.Text.StartsWith("//")) comment.Text = "//" + comment.Text;
+            if (comment.Text.StartsWith("/*") && comment.Text.EndsWith("*/")) base.GetComment(comment);
+
+           
+
             return base.GetComment(comment);
         }
     }

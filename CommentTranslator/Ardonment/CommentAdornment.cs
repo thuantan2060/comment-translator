@@ -142,7 +142,7 @@ namespace CommentTranslator.Ardonment
             }
 
             //Set text
-            _originTextBlock.Text = _parser.SimpleTrimComment(comment.Origin);
+            _originTextBlock.Text = comment.Origin;
 
             //Measure size
             _originTextBlock.Measure(new Size(double.MaxValue, double.MaxValue));

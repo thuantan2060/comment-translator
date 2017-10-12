@@ -90,14 +90,25 @@ namespace CommentTranslator.Parsers
 
         public virtual Comment GetComment(CommentTranslateTag comment)
         {
-            var trimmed = TrimComment(comment.Text);
+            if (IsValidComment(comment.Text))
+            {
+                var trimmed = TrimComment(comment.Text);
+                return new Comment()
+                {
+                    Origin = comment.Text,
+                    Trimmed = trimmed.Text,
+                    Line = trimmed.Line,
+                    MarginTop = trimmed.MarginTop,
+                    Position = GetPositions(comment)
+                };
+            }
 
             return new Comment()
             {
                 Origin = comment.Text,
-                Trimmed = trimmed.Text,
-                Line = trimmed.Line,
-                MarginTop = trimmed.MarginTop,
+                Trimmed = "",
+                Line = 1,
+                MarginTop = 0,
                 Position = GetPositions(comment)
             };
         }
@@ -177,7 +188,7 @@ namespace CommentTranslator.Parsers
                 }
             }
 
-            return new TrimmedText(comment);
+            return new TrimmedText("");
         }
 
         protected int MarginTop(string text)
@@ -190,6 +201,19 @@ namespace CommentTranslator.Parsers
             }
 
             return index;
+        }
+
+        public bool IsValidComment(string comment)
+        {
+            foreach(var tag in Tags)
+            {
+                if (comment.StartsWith(tag.Start) && comment.EndsWith(tag.End))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 

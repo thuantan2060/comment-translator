@@ -17,5 +17,6 @@ namespace CommentTranslator.Parsers
         TrimmedText TrimComment(string comment);
         string SimpleTrimComment(string comment);
         TextPositions GetPositions(CommentTranslateTag comment);
+        bool IsValidComment(string comment);
     }
 }

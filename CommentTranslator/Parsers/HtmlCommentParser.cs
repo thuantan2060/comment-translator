@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CommentTranslator.Ardonment;
 
 namespace CommentTranslator.Parsers
 {
@@ -15,6 +16,25 @@ namespace CommentTranslator.Parsers
                     Name = "multiline"
                 }
             };
+        }
+
+        public override Comment GetComment(CommentTranslateTag comment)
+        {
+            //if (comment.Text.StartsWith("<!--") && comment.Text.EndsWith("-->"))
+            //{
+            //    return new Comment()
+            //    {
+            //        Origin = comment.Text,
+            //        Line = 1,
+            //        MarginTop = 0,
+            //        Trimmed = "",
+            //        Position = GetPositions(comment)
+            //    };
+            //}
+
+            if (!comment.Text.StartsWith("<!--") && comment.Text.EndsWith("-->")) comment.Text = "<!--" + comment.Text;
+
+            return base.GetComment(comment);
         }
     }
 }
