@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CommentTranslator.Ardonment
 {
@@ -47,30 +48,52 @@ namespace CommentTranslator.Ardonment
 
         #region Functions
 
-        protected override CommentAdornment CreateAdornment(CommentTag data, SnapshotSpan span, SnapshotSpan originSpan)
+        protected override CommentAdornment CreateAdornment(CommentTag data, SnapshotSpan span)
         {
-            return new CommentAdornment(data, span, _view, _format, originSpan);
+            return new CommentAdornment(data, span, _view, _format);
         }
 
-        protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTag, SnapshotSpan>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
+        protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTag>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
         {
             if (spans.Count == 0)
                 yield break;
 
-            var commentTags = _commentTagger.GetTags(spans);
+            var snapshot = spans[0].Snapshot;
+            var mapingTagSpans = _commentTagger.GetTags(spans);
+            var commentTagSpans = ConvertToTagSpan(snapshot, mapingTagSpans);
 
-            foreach (ITagSpan<CommentTag> dataTagSpan in commentTags)
+            foreach (ITagSpan<CommentTag> dataTagSpan in commentTagSpans)
             {
                 SnapshotSpan adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Start, 0);
 
-                yield return Tuple.Create(adornmentSpan, (PositionAffinity?)PositionAffinity.Successor, dataTagSpan.Tag, dataTagSpan.Span);
+                yield return Tuple.Create(adornmentSpan, (PositionAffinity?)PositionAffinity.Successor, dataTagSpan.Tag);
             }
         }
 
-        protected override bool UpdateAdornment(CommentAdornment adornment, CommentTag data, SnapshotSpan span, SnapshotSpan originSpan)
+        protected override bool UpdateAdornment(CommentAdornment adornment, CommentTag data, SnapshotSpan span)
         {
-            adornment.Update(data, span, originSpan);
+            adornment.Update(data, span);
             return true;
+        }
+
+        private IEnumerable<ITagSpan<CommentTag>> ConvertToTagSpan(ITextSnapshot snapshot, IEnumerable<IMappingTagSpan<CommentTag>> mappingTagSpans)
+        {
+            if (mappingTagSpans.Count() == 0) yield break;
+
+            foreach (var mapTagSpan in mappingTagSpans)
+            {
+                var nssc = mapTagSpan.Span.GetSpans(snapshot);
+                if (nssc.Count > 0)
+                {
+                    var snapshotSpan = nssc[0];
+
+                    string text = snapshotSpan.GetText();
+                    if (String.IsNullOrWhiteSpace(text))
+                        continue;
+
+                    yield return new TagSpan<CommentTag>(snapshotSpan, mapTagSpan.Tag);
+                }
+            }
         }
 
         #endregion

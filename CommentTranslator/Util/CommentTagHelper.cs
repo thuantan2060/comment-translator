@@ -35,7 +35,7 @@ namespace CommentTranslator.Util
                     if (String.IsNullOrWhiteSpace(text))
                         continue;
 
-                    yield return new TagSpan<CommentTag>(snapshotSpan, new CommentTag(text, contentType, tagSpan.Tag.ClassificationType, 200));
+                    yield return new TagSpan<CommentTag>(snapshotSpan, new CommentTag(text, CommentParserHelper.GetCommentParser(contentType.TypeName), 200));
                 }
             }
         }

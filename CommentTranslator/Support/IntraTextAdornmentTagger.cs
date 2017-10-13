@@ -9,13 +9,13 @@
 //
 //***************************************************************************
 
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace CommentTranslator.Support
 {
@@ -29,8 +29,9 @@ namespace CommentTranslator.Support
     /// that are consistent with the latest sent TagsChanged event by storing that particular snapshot
     /// and using it to query for the data tags.
     /// </remarks>
-    internal abstract class IntraTextAdornmentTagger<TData, TAdornment> : ITagger<IntraTextAdornmentTag>
-        where TAdornment : FrameworkElement, IAdornment
+    internal abstract class IntraTextAdornmentTagger<TData, TAdornment>
+        : ITagger<IntraTextAdornmentTag>
+        where TAdornment : FrameworkElement
     {
         protected readonly IWpfTextView _view;
         private Dictionary<SnapshotSpan, TAdornment> _adornmentCache = new Dictionary<SnapshotSpan, TAdornment>();
@@ -48,10 +49,10 @@ namespace CommentTranslator.Support
 
         /// <param name="span">The span of text that this adornment will elide.</param>
         /// <returns>Adornment corresponding to given data. May be null.</returns>
-        protected abstract TAdornment CreateAdornment(TData data, SnapshotSpan span, SnapshotSpan originSpan);
+        protected abstract TAdornment CreateAdornment(TData data, SnapshotSpan span);
 
         /// <returns>True if the adornment was updated and should be kept. False to have the adornment removed from the view.</returns>
-        protected abstract bool UpdateAdornment(TAdornment adornment, TData data, SnapshotSpan snapshot, SnapshotSpan originSpan);
+        protected abstract bool UpdateAdornment(TAdornment adornment, TData data, SnapshotSpan snapshot);
 
         /// <param name="spans">Spans to provide adornment data for. These spans do not necessarily correspond to text lines.</param>
         /// <remarks>
@@ -64,7 +65,7 @@ namespace CommentTranslator.Support
         ///  * the span of text that should be elided for that adornment (zero length spans are acceptable)
         ///  * and affinity of the adornment (this should be null if and only if the elided span has a length greater than zero)
         /// </returns>
-        protected abstract IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, TData, SnapshotSpan>> GetAdornmentData(NormalizedSnapshotSpanCollection spans);
+        protected abstract IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, TData>> GetAdornmentData(NormalizedSnapshotSpanCollection spans);
 
         private void HandleBufferChanged(object sender, TextContentChangedEventArgs args)
         {
@@ -180,7 +181,8 @@ namespace CommentTranslator.Support
 
             ITextSnapshot snapshot = spans[0].Snapshot;
 
-            System.Diagnostics.Debug.Assert(snapshot == this._snapshot);
+            if (snapshot != this._snapshot)
+                yield break;
 
             // Since WPF UI objects have state (like mouse hover or animation) and are relatively expensive to create and lay out,
             // this code tries to reuse controls as much as possible.
@@ -193,27 +195,6 @@ namespace CommentTranslator.Support
                 if (spans.IntersectsWith(new NormalizedSnapshotSpanCollection(ar.Key)))
                     toRemove.Add(ar.Key);
 
-            //Remove interset spans
-            //var filterSpans = new List<SnapshotSpan>(spans);
-            //foreach (var span in spans)
-            //{
-            //    foreach (var adornment in _adornmentCache)
-            //    {
-            //        if (span != adornment.Value.Span)
-            //        {
-            //            if (adornment.Value.Span.Start >= span.Start && adornment.Value.Span.End <= span.End)
-            //            {
-            //                if (!toRemove.Contains(adornment.Key)) toRemove.Add(adornment.Key);
-            //            }
-            //            else if (adornment.Value.Span.Start <= span.Start && adornment.Value.Span.End >= span.End)
-            //            {
-            //                if (!toRemove.Contains(adornment.Key)) toRemove.Add(adornment.Key);
-            //                //filterSpans.Remove(span);
-            //            }
-            //        }
-            //    }
-            //}
-
             foreach (var spanDataPair in GetAdornmentData(spans).Distinct(new Comparer()))
             {
                 // Look up the corresponding adornment or create one if it's new.
@@ -221,16 +202,14 @@ namespace CommentTranslator.Support
                 SnapshotSpan snapshotSpan = spanDataPair.Item1;
                 PositionAffinity? affinity = spanDataPair.Item2;
                 TData adornmentData = spanDataPair.Item3;
-                SnapshotSpan originSpan = spanDataPair.Item4;
-
                 if (_adornmentCache.TryGetValue(snapshotSpan, out adornment))
                 {
-                    if (UpdateAdornment(adornment, adornmentData, snapshotSpan, originSpan))
+                    if (UpdateAdornment(adornment, adornmentData, snapshotSpan))
                         toRemove.Remove(snapshotSpan);
                 }
                 else
                 {
-                    adornment = CreateAdornment(adornmentData, snapshotSpan, originSpan);
+                    adornment = CreateAdornment(adornmentData, snapshotSpan);
 
                     if (adornment == null)
                         continue;
@@ -257,9 +236,9 @@ namespace CommentTranslator.Support
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-        private class Comparer : IEqualityComparer<Tuple<SnapshotSpan, PositionAffinity?, TData, SnapshotSpan>>
+        private class Comparer : IEqualityComparer<Tuple<SnapshotSpan, PositionAffinity?, TData>>
         {
-            public bool Equals(Tuple<SnapshotSpan, PositionAffinity?, TData, SnapshotSpan> x, Tuple<SnapshotSpan, PositionAffinity?, TData, SnapshotSpan> y)
+            public bool Equals(Tuple<SnapshotSpan, PositionAffinity?, TData> x, Tuple<SnapshotSpan, PositionAffinity?, TData> y)
             {
                 if (x == null && y == null)
                     return true;
@@ -268,16 +247,11 @@ namespace CommentTranslator.Support
                 return x.Item1.Equals(y.Item1);
             }
 
-            public int GetHashCode(Tuple<SnapshotSpan, PositionAffinity?, TData, SnapshotSpan> obj)
+            public int GetHashCode(Tuple<SnapshotSpan, PositionAffinity?, TData> obj)
             {
                 return obj.Item1.GetHashCode();
             }
         }
 
-    }
-
-    internal interface IAdornment
-    {
-        SnapshotSpan Span { get; }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace CommentTranslator.Ardonment
@@ -24,7 +25,7 @@ namespace CommentTranslator.Ardonment
 
             if (_parser != null)
             {
-                this.ReParse();
+                this.ReParse(null);
                 this._buffer.Changed += BufferChanged;
             }
         }
@@ -36,13 +37,42 @@ namespace CommentTranslator.Ardonment
             // If this isn't the most up-to-date version of the buffer, then ignore it for now (we'll eventually get another change event).
             if (e.After != _buffer.CurrentSnapshot)
                 return;
-            this.ReParse();
+            this.ReParse(e.Changes);
         }
 
-        void ReParse()
+        void ReParse(INormalizedTextChangeCollection changes)
         {
+            //Check is enable auto translate
+            if (!CommentTranslatorPackage.Settings.AutoTranslateComment) return;
+
+            //Find last comment end
+            var startFrom = 0;
+            var newRegions = new List<CommentRegion>();
             var newSnapshot = _buffer.CurrentSnapshot;
-            var newRegions = _parser.GetCommentRegions(newSnapshot);
+
+            if (changes != null && changes.Count > 0)
+            {
+                //Find start of change line
+                //var change = changes[0];
+                //var changLine = newSnapshot.GetLineFromPosition(change.OldPosition);
+
+                foreach (var region in this._regions.OrderBy(r => r.Start))
+                {
+                    if (region.Start + region.Length < changes[0].OldPosition)
+                    {
+                        newRegions.Add(region);
+                    }
+                    else
+                    {
+                        startFrom = newRegions.Count > 0 ? newRegions[newRegions.Count - 1].Start + newRegions[newRegions.Count - 1].Length : 0;
+                        break;
+                    }
+                }
+            }
+
+            //Find new region
+            var regions = _parser.GetCommentRegions(newSnapshot, startFrom);
+            if (regions.Count() > 0) newRegions.AddRange(regions);
 
             //determine the changed span, and send a changed event with the new spans
             List<Span> oldSpans = new List<Span>(this._regions.Select(r => AsSnapshotSpan(r, this._snapshot)
@@ -76,6 +106,8 @@ namespace CommentTranslator.Ardonment
 
             if (changeStart <= changeEnd)
             {
+                //Debug.WriteLine("ReParse: ({0}, {1})", changeStart, changeEnd);
+
                 ITextSnapshot snap = this._snapshot;
                 TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(this._snapshot, Span.FromBounds(changeStart, changeEnd))));
             }
@@ -83,19 +115,25 @@ namespace CommentTranslator.Ardonment
 
         public IEnumerable<ITagSpan<CommentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (spans.Count == 0 || _parser == null)
+            if (!CommentTranslatorPackage.Settings.AutoTranslateComment || spans.Count == 0 || _parser == null)
                 yield break;
 
             var currentRegions = this._regions;
             var currentSnapshot = this._snapshot;
             var entire = new SnapshotSpan(spans[0].Start, spans[spans.Count - 1].End).TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
 
+            //Debug.WriteLine("GetTags: ({0}, {1}) -> {2}/{3}",
+            //           entire.Start.Position,
+            //           entire.End.Position,
+            //           currentRegions.Where(x => x.Start <= entire.Start && x.Length + x.Start >= entire.End).Count(),
+            //           currentRegions.Count());
+
             foreach (var region in currentRegions)
             {
-                if (region.Start <= entire.Start && region.Length + region.Start >= entire.End)
+                if (region.Start <= entire.Start.Position && region.Length + region.Start >= entire.End)
                 {
                     var span = new SnapshotSpan(currentSnapshot, region.Start, region.Length);
-                    var tag = new CommentTag(span.GetText(), null, null, 200);
+                    var tag = new CommentTag(span.GetText(), _parser, 200);
 
                     yield return new TagSpan<CommentTag>(span, tag);
                 }

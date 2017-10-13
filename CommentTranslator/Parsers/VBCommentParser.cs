@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommentTranslator.Parsers
 {
@@ -6,14 +7,21 @@ namespace CommentTranslator.Parsers
     {
         public VBCommentParser()
         {
-            Tags = new List<CommentTag>
+            Tags = new List<ParseTag>
             {
                 //Singleline comment
-                new CommentTag()
+                new ParseTag()
+                {
+                    Start = "'",
+                    End = Environment.NewLine,
+                    Name = "singleline"
+                },
+
+                new ParseTag()
                 {
                     Start = "'",
                     End = "",
-                    Name = "singleline"
+                    Name = "singlelineend"
                 },
             };
         }

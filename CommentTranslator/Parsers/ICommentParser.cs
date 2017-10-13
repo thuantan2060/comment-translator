@@ -11,17 +11,14 @@ namespace CommentTranslator.Parsers
 
     public interface ICommentParser
     {
-        IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot);
-        //Comment GetComment(Ardonment.CommentTag comment);
-        TrimmedText TrimComment(string comment);
-        string TrimCommentLines(string comment);
-        TextPositions GetPositions(Ardonment.CommentTag comment);
-        //bool IsValidComment(string comment);
+        IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, int startFrom = 0);
+        Comment GetComment(string commentText);
+        TextPositions GetPositions(Comment comment);
     }
 
     public class CommentRegion
     {
         public int Start { get; set; }
-        public int Length { get; set; }
+        public int Length { get; set; } 
     }
 }

@@ -58,12 +58,11 @@
     <Compile Include="Ardonment\CommentTag.cs" />
     <Compile Include="Ardonment\CommentTagger.cs" />
     <Compile Include="Ardonment\CommentTaggerProvider.cs" />
-    <Compile Include="Ardonment\OutliningTagger.cs" />
-    <Compile Include="Ardonment\OutliningTaggerProvider.cs" />
     <Compile Include="Client\TranslateClient.cs" />
     <Compile Include="Command\ToggleAutoTranslateCommand.cs" />
     <Compile Include="Command\TranslateCommand.cs" />
     <Compile Include="CommentTranslatorPackage.cs" />
+    <Compile Include="Parsers\Comment.cs" />
     <Compile Include="Parsers\CommentParser.cs" />
     <Compile Include="Parsers\PythonCommentParser.cs" />
     <Compile Include="Parsers\CssCommentParser .cs" />
@@ -81,8 +80,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Support\IntraTextAdornmentTagger.cs" />
-    <Compile Include="Support\RegexMultiLineTagger.cs" />
-    <Compile Include="Support\RegexTagger.cs" />
     <Compile Include="Util\CommentParserHelper.cs" />
     <Compile Include="Util\CommentTagHelper.cs" />
     <Compile Include="Util\EditFormatMapHelper.cs" />

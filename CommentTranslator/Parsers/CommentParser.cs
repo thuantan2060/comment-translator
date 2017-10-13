@@ -1,5 +1,5 @@
-﻿using CommentTranslator.Util;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,128 +7,70 @@ namespace CommentTranslator.Parsers
 {
     public abstract class CommentParser : ICommentParser
     {
-        protected IEnumerable<CommentTag> Tags { get; set; }
+        #region Fields
 
+        protected IEnumerable<ParseTag> Tags { get; set; }
 
-        //protected virtual IEnumerable<CommentRegion> Parse(string text, IEnumerable<CommentTag> tags)
-        //{
-        //    var comments = new List<Comment>();
+        #endregion
 
-        //    while (text.Length > 0)
-        //    {
-        //        //Find first start tag
-        //        CommentTag currentTag = null;
-        //        int startIndex = int.MaxValue;
-        //        foreach (var tag in tags)
-        //        {
-        //            var index = text.IndexOf(tag.Start);
-        //            if (index >= 0 && index < startIndex)
-        //            {
-        //                currentTag = tag;
-        //                startIndex = index;
-        //            }
-        //        }
+        #region Contructors
 
-        //        //Check if found start tag
-        //        if (currentTag != null)
-        //        {
-        //            //Cut text
-        //            text = text.Substring(startIndex + currentTag.Start.Length);
+        #endregion
 
-        //            //Find first end tag
-        //            var endIndex = 0;
-        //            if (currentTag.Start != currentTag.End)
-        //            {
-        //                if (currentTag.End.Length == 0)
-        //                {
-        //                    endIndex = text.IndexOf('\n');
-        //                }
-        //                else
-        //                {
-        //                    endIndex = text.IndexOf(currentTag.End);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                endIndex = text.IndexOf(currentTag.End);
-        //            }
+        #region Properties
 
-        //            //Check if found end tag
-        //            if (endIndex >= 0)
-        //            {
-        //                var originText = text.Substring(0, endIndex);
-        //                var trimmed = TrimComment(originText);
+        #endregion
 
-        //                //Add comment
-        //                comments.Add(new Comment()
-        //                {
-        //                    Tag = currentTag,
-        //                    Origin = originText,
-        //                    Trimmed = trimmed.Text,
-        //                    Line = trimmed.Line,
-        //                    MarginTop = trimmed.MarginTop
-        //                });
+        #region Methods
 
-        //                text = text.Substring(endIndex + (currentTag.End.Length > 0 ? currentTag.End.Length : 1));
-        //            }
-        //            else
-        //            {
-        //                text = "";
-        //            }
-        //        }
-        //        else
-        //        {
-        //            text = "";
-        //        }
-        //    }
-
-        //    return comments;
-        //}
-
-        //public virtual Comment GetComment(Ardonment.CommentTag comment)
-        //{
-        //    if (IsValidComment(comment.Text))
-        //    {
-        //        var trimmed = TrimComment(comment.Text);
-        //        return new Comment()
-        //        {
-        //            Origin = comment.Text,
-        //            Trimmed = trimmed.Text,
-        //            Line = trimmed.Line,
-        //            MarginTop = trimmed.MarginTop,
-        //            Position = GetPositions(comment)
-        //        };
-        //    }
-
-        //    return new Comment()
-        //    {
-        //        Origin = comment.Text,
-        //        Trimmed = "",
-        //        Line = 1,
-        //        MarginTop = 0,
-        //        Position = GetPositions(comment)
-        //    };
-        //}
-
-        public virtual string TrimCommentLines(string comment)
+        public virtual Comment GetComment(string commentText)
         {
-            var lines = comment.Split('\n');
+            var text = commentText;
+
+            //Remove tags
+            foreach (var tag in Tags)
+            {
+                if (commentText.StartsWith(tag.Start) && commentText.EndsWith(tag.End))
+                {
+                    text = text.Substring(tag.Start.Length, commentText.Length - tag.Start.Length - tag.End.Length);
+                    break;
+                }
+            }
+
+            //Split text to lines
+            var lines = text.Split('\n');
             var builder = new StringBuilder();
 
-            //Add first line
-            builder.AppendLine(lines[0].Trim());
-
-            //Add next lines
-            for (int i = 1; i < lines.Length; i++)
+            //Trim each line
+            for (int i = 0; i < lines.Length; i++)
             {
                 builder.AppendLine(lines[i].Trim());
             }
-            return builder.ToString().TrimEnd();
+
+            //Calculate margin top
+            var marginTop = GetMarginTop(lines);
+
+            //Get content
+            text = builder.ToString().Trim();
+
+            //Create comment
+            var comment = new Comment()
+            {
+                Origin = commentText,
+                Content = text,
+                Line = lines.Length - (commentText.EndsWith(Environment.NewLine) ? 1 : 0),
+                MarginTop = marginTop
+            };
+
+            //Get position
+            comment.Position = GetPositions(comment);
+
+            return comment;
         }
 
-        public virtual TextPositions GetPositions(Ardonment.CommentTag comment)
+        public virtual TextPositions GetPositions(Comment comment)
         {
-            if (CommentHelper.LineCount(comment.Text) > 1)
+            if (comment.Line > 1)
             {
                 return TextPositions.Right;
             }
@@ -136,83 +78,17 @@ namespace CommentTranslator.Parsers
             return TextPositions.Bottom;
         }
 
-        public virtual TrimmedText TrimComment(string comment)
+        public IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, int startFrom = 0)
         {
-            //var lines = comment.Split('\n');
-
-            ////Check if single line
-            //if (lines.Length <= 1)
-            //{
-            //    return new TrimmedText(comment.Trim(), 1, 0);
-            //}
-
-            ////Trim multi line comment
-            //var builder = new StringBuilder();
-
-            ////Add first line
-            //builder.AppendLine(lines[0].Trim());
-
-            ////Add next lines
-            //for (int i = 1; i < lines.Length; i++)
-            //{
-            //    builder.AppendLine(lines[i].Trim());
-            //}
-
-            //var trimmedComment = builder.ToString().TrimEnd();
-            //return new TrimmedText(trimmedComment, comment.EndsWith("\n") ? lines.Length - 1 : lines.Length, MarginTop(trimmedComment));
-            foreach (var tag in Tags)
-            {
-                var startIndex = comment.IndexOf(tag.Start);
-                if (startIndex >= 0)
-                {
-                    //Shiff start index
-                    startIndex += tag.Start.Length;
-
-                    //Calculate end index
-                    var endIndex = 0;
-                    if (tag.End.Length == 0)
-                        endIndex = comment.EndsWith("\n") ? comment.Length - 1 : comment.Length;
-                    else
-                        endIndex = comment.IndexOf(tag.End);
-
-                    if (startIndex >= endIndex)
-                    {
-                        return new TrimmedText("");
-                    }
-
-                    //Break into lines
-                    var text = comment.Substring(startIndex, endIndex - startIndex);
-                    var lines = text.Split('\n');
-
-                    //Check if single line
-                    if (lines.Length <= 1)
-                    {
-                        return new TrimmedText(text.Trim(), 1, 0);
-                    }
-
-                    //Trim multi line comment
-                    var builder = new StringBuilder();
-
-                    //Add first line
-                    builder.AppendLine(lines[0].Trim());
-
-                    //Add next lines
-                    for (int i = 1; i < lines.Length; i++)
-                    {
-                        builder.AppendLine(lines[i].Trim());
-                    }
-
-                    var trimmedComment = builder.ToString().TrimEnd();
-                    return new TrimmedText(trimmedComment, comment.EndsWith("\n") ? lines.Length - 1 : lines.Length, MarginTop(trimmedComment));
-                }
-            }
-
-            return new TrimmedText(comment);
+            return GetCommentRegions(snapshot, Tags, startFrom);
         }
 
-        protected virtual int MarginTop(string text)
+        #endregion
+
+        #region Functions
+
+        protected virtual int GetMarginTop(string[] lines)
         {
-            var lines = text.Split('\n');
             var index = 0;
             while (index < lines.Length && string.IsNullOrEmpty(lines[index].Trim()))
             {
@@ -222,16 +98,11 @@ namespace CommentTranslator.Parsers
             return index;
         }
 
-        public IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot)
-        {
-            return GetCommentRegions(snapshot, Tags);
-        }
-
-        protected virtual IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, IEnumerable<CommentTag> tags)
+        protected virtual IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, IEnumerable<ParseTag> tags, int startFrom = 0)
         {
             var comments = new List<CommentRegion>();
-            var text = snapshot.GetText();
-            var offset = 0;
+            var text = snapshot.GetText().Substring(startFrom);
+            var offset = startFrom;
 
             while (text.Length > 0)
             {
@@ -242,6 +113,7 @@ namespace CommentTranslator.Parsers
                 if (indexTags == null) break;
 
                 //Try for each tag
+                var foundTag = false;
                 foreach (var tag in indexTags.Tags)
                 {
                     var trimStart = text.Substring(indexTags.Index + tag.Start.Length);
@@ -250,7 +122,7 @@ namespace CommentTranslator.Parsers
                     var endIndex = 0;
                     if (tag.Start != tag.End)
                     {
-                        endIndex = trimStart.IndexOf(tag.End);
+                        endIndex = string.IsNullOrEmpty(tag.End) ? trimStart.Length : trimStart.IndexOf(tag.End);
                     }
                     else
                     {
@@ -267,31 +139,21 @@ namespace CommentTranslator.Parsers
                         };
 
                         offset = commentRegion.Start + commentRegion.Length;
-                        text = trimStart.Substring(endIndex + tag.End.Length);
+                        text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
                         comments.Add(commentRegion);
+                        foundTag = true;
 
                         break;
                     }
                 }
+
+                if (!foundTag) break;
             }
 
             return comments;
         }
 
-        //public bool IsValidComment(string comment)
-        //{
-        //    foreach (var tag in Tags)
-        //    {
-        //        if (comment.StartsWith(tag.Start) && comment.EndsWith(tag.End))
-        //        {
-        //            return true;
-        //        }
-        //    }
-
-        //    return false;
-        //}
-
-        private IndexTags GetIndexTags(string text, IEnumerable<CommentTag> tags)
+        private IndexTags GetIndexTags(string text, IEnumerable<ParseTag> tags)
         {
             var indexTagsDic = new Dictionary<int, IndexTags>();
             int minIndex = int.MaxValue;
@@ -312,7 +174,7 @@ namespace CommentTranslator.Parsers
                         indexTagsDic.Add(index, new IndexTags()
                         {
                             Index = index,
-                            Tags = new List<CommentTag>()
+                            Tags = new List<ParseTag>()
                             {
                                 tag
                             }
@@ -324,49 +186,24 @@ namespace CommentTranslator.Parsers
             return indexTagsDic.ContainsKey(minIndex) ? indexTagsDic[minIndex] : null;
         }
 
+        #endregion
+
+        #region InnerMembers
+
         private class IndexTags
         {
             public int Index { get; set; }
-            public List<CommentTag> Tags { get; set; }
+            public List<ParseTag> Tags { get; set; }
         }
+
+        #endregion
     }
 
-    public class Comment
-    {
-        public CommentTag Tag { get; set; }
-        public string Origin { get; set; }
-        public string Trimmed { get; set; }
-        public TextPositions Position { get; set; }
-        public int Line { get; set; }
-        public int MarginTop { get; set; }
-        public int Start { get; set; }
-        public int End { get; set; }
-    }
 
-    public class CommentTag
+    public class ParseTag
     {
         public string Start { get; set; }
         public string End { get; set; }
         public string Name { get; set; }
-    }
-
-    public class TrimmedText
-    {
-        public string Text { get; set; }
-        public int Line { get; set; }
-        public int MarginTop { get; set; }
-
-        public TrimmedText(string text, int line, int marginTop)
-        {
-            this.Text = text;
-            this.Line = line;
-            this.MarginTop = marginTop;
-        }
-
-        public TrimmedText(string text)
-        {
-            this.Text = text;
-            this.Line = CommentHelper.LineCount(text);
-        }
     }
 }

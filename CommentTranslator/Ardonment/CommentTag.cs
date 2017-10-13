@@ -1,6 +1,5 @@
-﻿using Microsoft.VisualStudio.Text.Classification;
+﻿using CommentTranslator.Parsers;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace CommentTranslator.Ardonment
 {
@@ -8,16 +7,15 @@ namespace CommentTranslator.Ardonment
     {
         public string Text { get; set; }
         public int TimeWaitAfterChange { get; set; }
-        public IContentType ContentType { get; set; }
+        public ICommentParser Parser { get; set; }
+        public Comment Comment { get; set; }
 
-        public IClassificationType ClassificationType { get; set; }
-
-        public CommentTag(string text, IContentType contentType, IClassificationType classificationType, int timeWaitAfterChange = 0)
+        public CommentTag(string text, ICommentParser parser, int timeWaitAfterChange = 0)
         {
             Text = text;
-            ContentType = contentType;
-            ClassificationType = classificationType;
+            Parser = parser;
             TimeWaitAfterChange = timeWaitAfterChange;
+            Comment = parser.GetComment(text);
         }
     }
 }

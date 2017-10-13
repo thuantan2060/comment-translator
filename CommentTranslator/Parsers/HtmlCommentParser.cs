@@ -6,10 +6,10 @@ namespace CommentTranslator.Parsers
     {
         public HtmlCommentParser()
         {
-            Tags = new List<CommentTag>
+            Tags = new List<ParseTag>
             {
                 //Multi line comment
-                new CommentTag(){
+                new ParseTag(){
                     Start = "<!--",
                     End = "-->",
                     Name = "multiline"

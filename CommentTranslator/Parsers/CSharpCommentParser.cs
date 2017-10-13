@@ -8,96 +8,68 @@ namespace CommentTranslator.Parsers
     {
         public CSharpCommentParser()
         {
-            Tags = new List<CommentTag>
+            Tags = new List<ParseTag>
             {
                 //XML tags comment
-                new CommentTag()
+                new ParseTag()
                 {
                     Start = "///",
-                    End = "\n",
+                    End = Environment.NewLine,
                     Name = "xmldoc"
                 },
 
                 //Singleline comment
-                new CommentTag()
+                new ParseTag()
                 {
                     Start = "//",
-                    End = "\n",
+                    End = Environment.NewLine,
                     Name = "singleline"
                 },
 
                 //Multi line comment
-                new CommentTag(){
+                new ParseTag(){
                     Start = "/*",
                     End = "*/",
                     Name = "multiline"
-                }
+                },
+
+                //Singleline comment
+                new ParseTag()
+                {
+                    Start = "//",
+                    End = "",
+                    Name = "singlelineend"
+                },
             };
         }
 
-        public override TrimmedText TrimComment(string comment)
+        public override Comment GetComment(string commentText)
         {
-            foreach (var tag in Tags)
+            var lines = commentText.Split('\n');
+            var builder = new StringBuilder();
+
+            foreach(var line in lines)
             {
-                var startIndex = comment.IndexOf(tag.Start);
-                if (startIndex >= 0)
+                var text = line.TrimStart();
+                if (text.StartsWith("*"))
                 {
-                    //Shiff start index
-                    startIndex += tag.Start.Length;
-
-                    //Calculate end index
-                    var endIndex = 0;
-                    if (tag.End.Length == 0)
-                        endIndex = comment.EndsWith("\n") ? comment.Length - 1 : comment.Length;
-                    else
-                        endIndex = comment.IndexOf(tag.End);
-
-                    if (startIndex >= endIndex)
-                    {
-                        return new TrimmedText("");
-                    }
-
-                    //Break into lines
-                    var text = comment.Substring(startIndex, endIndex - startIndex);
-                    var lines = text.Split('\n');
-
-                    //Check if single line
-                    if (lines.Length <= 1)
-                    {
-                        return new TrimmedText(text.Trim(), 1, 0);
-                    }
-
-                    //Trim multi line comment
-                    var builder = new StringBuilder();
-
-                    //Add first line
-                    builder.AppendLine(lines[0].Trim());
-
-                    //Add next lines
-                    for (int i = 1; i < lines.Length; i++)
-                    {
-                        var line = lines[i].Trim();
-
-                        //Trim * charater
-                        if (line.StartsWith("*"))
-                        {
-                            line = line.Substring(1).TrimStart();
-                        }
-
-                        builder.AppendLine(line);
-                    }
-
-                    var trimmedComment = builder.ToString().TrimEnd();
-                    return new TrimmedText(trimmedComment, lines.Length, MarginTop(trimmedComment));
+                    text = text.Substring(1);
                 }
+
+                builder.AppendLine(text);
             }
 
-            return new TrimmedText(comment);
+            if (commentText.EndsWith(Environment.NewLine))
+            {
+                builder.Remove(builder.Length - Environment.NewLine.Length, Environment.NewLine.Length);
+            }
+
+            return base.GetComment(builder.ToString());
         }
 
-        public override TextPositions GetPositions(Ardonment.CommentTag comment)
+        public override TextPositions GetPositions(Comment comment)
         {
-            if (comment.ClassificationType?.Classification.IndexOf("doc", StringComparison.OrdinalIgnoreCase) > 0)
+            if (comment.Origin.StartsWith("///"))
             {
                 return TextPositions.Right;
             }
