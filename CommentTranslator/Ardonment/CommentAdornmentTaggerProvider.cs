@@ -11,6 +11,7 @@ namespace CommentTranslator.Ardonment
     [Export(typeof(IViewTaggerProvider))]
     [ContentType("code")]
     [ContentType("projection")]
+    [Order(After = PredefinedAdornmentLayers.Caret)]
     [TagType(typeof(IntraTextAdornmentTag))]
     internal sealed class CommentAdornmentTaggerProvider : IViewTaggerProvider
     {

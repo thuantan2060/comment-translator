@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace CommentTranslator.Ardonment
@@ -130,7 +129,7 @@ namespace CommentTranslator.Ardonment
 
             foreach (var region in currentRegions)
             {
-                if (region.Start <= entire.Start.Position && region.Length + region.Start >= entire.End)
+                if (entire.OverlapsWith(new Span(region.Start, region.Length)))
                 {
                     var span = new SnapshotSpan(currentSnapshot, region.Start, region.Length);
                     var tag = new CommentTag(span.GetText(), _parser, 200);

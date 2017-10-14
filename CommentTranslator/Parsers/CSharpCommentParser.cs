@@ -48,18 +48,21 @@ namespace CommentTranslator.Parsers
             var lines = commentText.Split('\n');
             var builder = new StringBuilder();
 
-            foreach(var line in lines)
+            foreach (var line in lines)
             {
-                var text = line.TrimStart();
-                if (text.StartsWith("*"))
+                var textLine = line.TrimEnd();
+                var text = textLine.TrimStart();
+                if (!text.StartsWith("*/") && text.StartsWith("*"))
                 {
                     text = text.Substring(1);
+                    textLine = new string(' ', textLine.Length - text.Length) + text;
                 }
 
-                builder.AppendLine(text);
+                builder.AppendLine(textLine);
             }
 
-            if (commentText.EndsWith(Environment.NewLine))
+            //Remove last new line
+            if (builder.Length > Environment.NewLine.Length)
             {
                 builder.Remove(builder.Length - Environment.NewLine.Length, Environment.NewLine.Length);
             }

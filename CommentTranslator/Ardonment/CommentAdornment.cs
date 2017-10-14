@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -54,7 +55,7 @@ namespace CommentTranslator.Ardonment
 
         public void Update(CommentTag tag, SnapshotSpan span)
         {
-            if (tag.Text != _tag.Text)
+            if (tag.Comment.Content != _tag.Comment.Content || tag.Comment.Line != _tag.Comment.Line)
             {
                 //Refresh layout
                 RefreshLayout(tag.Comment);
@@ -190,18 +191,22 @@ namespace CommentTranslator.Ardonment
 
         private void Translate(CommentTag tag, bool force = false)
         {
+            Debug.WriteLine("Request translate " + tag.Comment.Content);
+
             //Set translating tag
             _currentTag = tag;
 
-            if ((force || !_isTranslating) && !string.IsNullOrEmpty(tag.Comment.Content))
+            if (force || !_isTranslating)
             {
                 //Set translating
                 _isTranslating = true;
+                Debug.WriteLine("Translating true");
 
                 //Wait to translate
                 if (tag.TimeWaitAfterChange <= 0)
                 {
                     _isTranslating = false;
+                    Debug.WriteLine("Translating false");
                     StartTranslate(tag);
                 }
                 else
@@ -209,14 +214,18 @@ namespace CommentTranslator.Ardonment
                     Task.Delay(tag.TimeWaitAfterChange)
                         .ContinueWith((data) =>
                         {
-                            if (tag.Comment.Content != _currentTag.Comment.Content)
+                            if (!data.IsFaulted)
                             {
-                                Translate(_currentTag, true);
-                            }
-                            else
-                            {
-                                _isTranslating = false;
-                                StartTranslate(tag);
+                                if (tag.Comment.Content != _currentTag.Comment.Content)
+                                {
+                                    Translate(_currentTag, true);
+                                }
+                                else
+                                {
+                                    _isTranslating = false;
+                                    Debug.WriteLine("Translating false");
+                                    StartTranslate(tag);
+                                }
                             }
                         }, TaskScheduler.FromCurrentSynchronizationContext());
                 }
@@ -228,6 +237,8 @@ namespace CommentTranslator.Ardonment
             var comment = tag.Comment;
             if (!string.IsNullOrEmpty(comment.Content) && (_translatedComment == null || comment.Content != _translatedComment.Content))
             {
+                Debug.WriteLine("Start translate " + tag.Comment.Content);
+
                 //Set translated comment
                 _translatedComment = comment;
 
@@ -254,6 +265,8 @@ namespace CommentTranslator.Ardonment
 
         private void TranslateComplete(TranslatedComment comment, Exception error)
         {
+            Debug.WriteLine("Translate complete " + comment.Content);
+
             if (error != null)
             {
                 _textBlock.Foreground = Brushes.Red;
