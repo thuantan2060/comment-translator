@@ -1,36 +1,33 @@
 ﻿using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CommentTranslator.Ardonment
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("code")]
-    [TagType(typeof(CommentTranslateTag))]
+    [ContentType("projection")]
+    [Order(Before = PredefinedAdornmentLayers.Caret)]
+    [TagType(typeof(CommentTag))]
     public sealed class CommentTaggerProvider : ITaggerProvider
     {
-        [Import]
-        internal IClassificationTypeRegistryService ClassificationRegistry = null;
+
+#pragma warning disable 649 // "field never assigned to" -- field is set by MEF.
 
         [Import]
-        internal IBufferTagAggregatorFactoryService Aggregator = null;
+        internal IBufferTagAggregatorFactoryService BufferTagAggregatorFactoryService;
+
+#pragma warning restore 649
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
 
-            var tagAggregator = Aggregator.CreateTagAggregator<IClassificationTag>(buffer);
-
-            return buffer.Properties.GetOrCreateSingletonProperty(() => new CommentTagger(ClassificationRegistry, tagAggregator)) as ITagger<T>;
+            return buffer.Properties.GetOrCreateSingletonProperty(() => new CommentTagger(buffer, BufferTagAggregatorFactoryService.CreateTagAggregator<IClassificationTag>(buffer))) as ITagger<T>;
         }
     }
 }

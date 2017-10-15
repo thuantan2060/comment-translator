@@ -8,7 +8,7 @@ namespace CommentTranslator.Ardonment
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("code")]
-    [TagType(typeof(CommentTranslateTag))]
+    [TagType(typeof(CommentTag))]
     internal sealed class CommentTranslateTaggerProvider : ITaggerProvider
     {
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag

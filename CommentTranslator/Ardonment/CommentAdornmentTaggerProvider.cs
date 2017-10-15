@@ -11,6 +11,7 @@ namespace CommentTranslator.Ardonment
     [Export(typeof(IViewTaggerProvider))]
     [ContentType("code")]
     [ContentType("projection")]
+    [Order(After = PredefinedAdornmentLayers.Caret)]
     [TagType(typeof(IntraTextAdornmentTag))]
     internal sealed class CommentAdornmentTaggerProvider : IViewTaggerProvider
     {
@@ -36,9 +37,8 @@ namespace CommentTranslator.Ardonment
             return CommentAdornmentTagger.GetTagger(
                 (IWpfTextView)textView,
                 FormatMapService.GetEditorFormatMap(textView),
-                new Lazy<ITagAggregator<IClassificationTag>>(
-                    () => BufferTagAggregatorFactoryService.CreateTagAggregator<IClassificationTag>(textView.TextBuffer)))
-                as ITagger<T>;
+                new Lazy<ITagAggregator<CommentTag>>(() => BufferTagAggregatorFactoryService.CreateTagAggregator<CommentTag>(textView.TextBuffer))
+                ) as ITagger<T>;
         }
     }
 }

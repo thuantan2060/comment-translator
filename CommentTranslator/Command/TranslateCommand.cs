@@ -5,18 +5,17 @@
 //------------------------------------------------------------------------------
 
 using CommentTranslator.Ardonment;
-using CommentTranslator.Presentation;
 using CommentTranslator.Util;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.ComponentModel.Design;
+using System.Linq;
 
 namespace CommentTranslator
 {
@@ -115,12 +114,21 @@ namespace CommentTranslator
 
                 //Trim selected text
                 var parser = CommentParserHelper.GetCommentParser(dte.ActiveDocument.Language);
-                var selectedText = parser != null ? parser.TrimComment(selection.Text).TrimedText : selection.Text;
+                var text = selection.Text.Trim();
+
+                if (parser != null)
+                {
+                    var regions = parser.GetCommentRegions(text, 0);
+                    if (regions.Count() > 0 && regions.First().Start == 0 && regions.Last().End == text.Length)
+                    {
+                        text = string.Join(Environment.NewLine, regions.Select(r => parser.GetComment(text.Substring(r.Start, r.Length)).Content.Trim()));
+                    }
+                }
 
                 //Check if selection text is still empty
-                if (!string.IsNullOrEmpty(selectedText))
+                if (!string.IsNullOrEmpty(text))
                 {
-                    TranslatePopupConnector.Translate(GetWpfView(), selectedText);
+                    TranslatePopupConnector.Translate(GetWpfView(), text);
                 }
             }
         }

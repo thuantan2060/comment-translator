@@ -39,6 +39,8 @@ namespace CommentTranslator.Util
                 case "xaml":
                     return new XamlCommentParser();
                 case "html":
+                case "htmlx":
+                case "htmlxprojection":
                     return new HtmlCommentParser();
                 case "f#":
                     return new FSharpCommentParser();

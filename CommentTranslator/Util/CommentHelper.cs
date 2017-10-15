@@ -5,7 +5,8 @@
         public static int LineCount(string text)
         {
             if (string.IsNullOrEmpty(text)) return 0;
-            return text.Split('\n').Length;
+            var lines = text.Split('\n');
+            return text.EndsWith("\n") ? lines.Length - 1 : lines.Length;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using CommentTranslator.Util;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,107 +8,76 @@ namespace CommentTranslator.Parsers
     {
         public CSharpCommentParser()
         {
-            Tags = new List<CommentTag>
+            Tags = new List<ParseTag>
             {
                 //XML tags comment
-                new CommentTag()
+                new ParseTag()
                 {
                     Start = "///",
-                    End = "",
+                    End = Environment.NewLine,
                     Name = "xmldoc"
                 },
 
                 //Singleline comment
-                new CommentTag()
+                new ParseTag()
                 {
                     Start = "//",
-                    End = "",
+                    End = Environment.NewLine,
                     Name = "singleline"
                 },
 
                 //Multi line comment
-                new CommentTag(){
+                new ParseTag(){
                     Start = "/*",
                     End = "*/",
                     Name = "multiline"
-                }
+                },
+
+                //Singleline comment
+                new ParseTag()
+                {
+                    Start = "//",
+                    End = "",
+                    Name = "singlelineend"
+                },
             };
         }
 
-        public override TrimComment TrimComment(string comment)
+        public override Comment GetComment(string commentText)
         {
-            foreach (var tag in Tags)
+            var lines = commentText.Split('\n');
+            var builder = new StringBuilder();
+
+            foreach (var line in lines)
             {
-                var startIndex = comment.IndexOf(tag.Start);
-                if (startIndex >= 0)
+                var textLine = line.TrimEnd();
+                var text = textLine.TrimStart();
+                if (!text.StartsWith("*/") && text.StartsWith("*"))
                 {
-                    //Shif start index
-                    startIndex += tag.Start.Length;
-
-                    //Calculate end index
-                    var endIndex = tag.End.Length == 0 ? comment.Length : comment.IndexOf(tag.End);
-                    if (startIndex >= endIndex)
-                    {
-                        return new TrimComment()
-                        {
-                            OriginText = comment,
-                            LineCount = 0,
-                            TrimedText = ""
-                        };
-                    }
-
-                    //Break into lines
-                    var text = comment.Substring(startIndex, endIndex - startIndex);
-                    var lines = text.Split('\n');
-
-                    //Check if single line
-                    if (lines.Length <= 1)
-                    {
-                        return new TrimComment()
-                        {
-                            OriginText = comment,
-                            LineCount = 1,
-                            TrimedText = text.Trim()
-                        };
-                    }
-
-                    //Trim multi line comment
-                    var builder = new StringBuilder();
-
-                    //Add first line
-                    builder.AppendLine(lines[0].Trim());
-
-                    //Add next lines
-                    for (int i = 1; i < lines.Length; i++)
-                    {
-                        var line = lines[i].Trim();
-
-                        //Trim * charater
-                        if (line.StartsWith("*"))
-                        {
-                            line = line.Substring(1).TrimStart();
-                        }
-
-                        builder.AppendLine(line);
-                    }
-
-                    var trimedText = builder.ToString().TrimEnd();
-
-                    return new TrimComment()
-                    {
-                        OriginText = comment,
-                        LineCount = CommentHelper.LineCount(trimedText),
-                        TrimedText = trimedText
-                    };
+                    text = text.Substring(1);
+                    textLine = new string(' ', textLine.Length - text.Length) + text;
                 }
+
+                builder.AppendLine(textLine);
             }
 
-            return new TrimComment()
+            //Remove last new line
+            if (builder.Length > Environment.NewLine.Length)
             {
-                OriginText = comment,
-                LineCount = CommentHelper.LineCount(comment),
-                TrimedText = comment
-            };
+                builder.Remove(builder.Length - Environment.NewLine.Length, Environment.NewLine.Length);
+            }
+
+            return base.GetComment(builder.ToString());
+        }
+
+        public override TextPositions GetPositions(Comment comment)
+        {
+            if (comment.Origin.StartsWith("///"))
+            {
+                return TextPositions.Right;
+            }
+
+            return base.GetPositions(comment);
         }
     }
 }

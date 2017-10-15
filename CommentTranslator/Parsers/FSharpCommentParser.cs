@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommentTranslator.Parsers
 {
@@ -6,18 +7,18 @@ namespace CommentTranslator.Parsers
     {
         public FSharpCommentParser()
         {
-            Tags = new List<CommentTag>
+            Tags = new List<ParseTag>
             {
                 //Singleline comment
-                new CommentTag()
+                new ParseTag()
                 {
                     Start = "//",
-                    End = "",
+                    End = Environment.NewLine,
                     Name = "singleline"
                 },
 
                 //Multi line comment
-                new CommentTag(){
+                new ParseTag(){
                     Start = "(*",
                     End = "*)",
                     Name = "multiline"

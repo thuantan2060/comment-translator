@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CommentTranslator.Parsers
 {
@@ -6,22 +7,26 @@ namespace CommentTranslator.Parsers
     {
         public JavaScriptCommentParser()
         {
-            Tags = new List<CommentTag>
+            Tags = new List<ParseTag>
             {
-                //Singleline comment
-                new CommentTag()
+                new ParseTag()
                 {
-                    Start = "//",
-                    End = "",
-                    Name = "singleline"
-                },
-
-                //Multi line comment
-                new CommentTag(){
                     Start = "/*",
                     End = "*/",
                     Name = "multiline"
-                }
+                },
+                new ParseTag()
+                {
+                    Start = "//",
+                    End = Environment.NewLine,
+                    Name = "comment"
+                },
+                new ParseTag()
+                {
+                    Start = "//",
+                    End = "",
+                    Name = "singlelineend"
+                },
             };
         }
     }

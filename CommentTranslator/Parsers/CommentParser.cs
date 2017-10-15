@@ -1,188 +1,218 @@
-﻿using CommentTranslator.Util;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace CommentTranslator.Parsers
 {
     public abstract class CommentParser : ICommentParser
     {
-        protected IEnumerable<CommentTag> Tags { get; set; }
+        #region Fields
 
-        public IEnumerable<Comment> GetComment(SnapshotSpan span)
+        protected IEnumerable<ParseTag> Tags { get; set; }
+
+        #endregion
+
+        #region Contructors
+
+        #endregion
+
+        #region Properties
+
+        #endregion
+
+        #region Methods
+
+        public virtual Comment GetComment(string commentText)
         {
-            var watch = new Stopwatch();
-            watch.Start();
-            try
-            {
+            var text = commentText;
 
-                return Parse(span.GetText(), Tags);
-            }
-            finally
+            //Remove tags
+            foreach (var tag in Tags)
             {
-                watch.Stop();
-                Debug.WriteLine("Time: " + watch.ElapsedMilliseconds);
+                if (commentText.StartsWith(tag.Start) && commentText.EndsWith(tag.End))
+                {
+                    text = text.Substring(tag.Start.Length, commentText.Length - tag.Start.Length - tag.End.Length);
+                    break;
+                }
             }
+
+            //Split text to lines
+            var lines = text.Split('\n');
+            var builder = new StringBuilder();
+
+            //Trim each line
+            for (int i = 0; i < lines.Length; i++)
+            {
+                builder.AppendLine(lines[i].Trim());
+            }
+
+            //Calculate margin top
+            var marginTop = GetMarginTop(lines);
+
+            //Get content
+            text = builder.ToString().Trim();
+
+            //Create comment
+            var comment = new Comment()
+            {
+                Origin = commentText,
+                Content = text,
+                Line = lines.Length - (commentText.EndsWith(Environment.NewLine) ? 1 : 0),
+                MarginTop = marginTop
+            };
+
+            //Get position
+            comment.Position = GetPositions(comment);
+
+            return comment;
         }
 
-        protected virtual IEnumerable<Comment> Parse(string text, IEnumerable<CommentTag> tags)
+        public virtual TextPositions GetPositions(Comment comment)
         {
-            var comments = new List<Comment>();
-
-            while (text.Length > 0)
+            if (comment.Line > 1)
             {
-                //Find first start tag
-                CommentTag currentTag = null;
-                int startIndex = int.MaxValue;
-                foreach (var tag in tags)
-                {
-                    var index = text.IndexOf(tag.Start);
-                    if (index >= 0 && index < startIndex)
-                    {
-                        currentTag = tag;
-                        startIndex = index;
-                    }
-                }
+                return TextPositions.Right;
+            }
 
-                //Check if found start tag
-                if (currentTag != null)
+            return TextPositions.Bottom;
+        }
+
+        public IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, int startFrom = 0)
+        {
+            return GetCommentRegions(snapshot, Tags, startFrom);
+        }
+
+        public IEnumerable<CommentRegion> GetCommentRegions(string text, int startFrom = 0)
+        {
+            return GetCommentRegions(text, Tags, startFrom);
+        }
+
+        #endregion
+
+        #region Functions
+
+        protected virtual int GetMarginTop(string[] lines)
+        {
+            var index = 0;
+            while (index < lines.Length && string.IsNullOrEmpty(lines[index].Trim()))
+            {
+                index++;
+            }
+
+            return index;
+        }
+
+        protected virtual IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, IEnumerable<ParseTag> tags, int startFrom = 0)
+        {
+            var text = snapshot.GetText().Substring(startFrom);
+            return GetCommentRegions(text, tags, startFrom);
+        }
+
+        protected virtual IEnumerable<CommentRegion> GetCommentRegions(string text, IEnumerable<ParseTag> tags, int startFrom = 0)
+        {
+            var comments = new List<CommentRegion>();
+            if (!string.IsNullOrEmpty(text))
+            {
+                var offset = startFrom;
+                while (text.Length > 0)
                 {
-                    //Find first end tag
-                    var endIndex = 0;
-                    if (currentTag.Start != currentTag.End)
+                    //Find first start tag
+                    var indexTags = GetIndexTags(text, tags);
+
+                    //Stop if not found tag
+                    if (indexTags == null) break;
+
+                    //Try for each tag
+                    var foundTag = false;
+                    foreach (var tag in indexTags.Tags)
                     {
-                        if (currentTag.End.Length == 0)
+                        var trimStart = text.Substring(indexTags.Index + tag.Start.Length);
+
+                        //Find end index
+                        var endIndex = 0;
+                        if (tag.Start != tag.End)
                         {
-                            endIndex = text.IndexOf('\n');
+                            endIndex = string.IsNullOrEmpty(tag.End) ? trimStart.Length : trimStart.IndexOf(tag.End);
                         }
                         else
                         {
-                            endIndex = text.IndexOf(currentTag.End);
+                            endIndex = trimStart.IndexOf(tag.End);
+                        }
+
+                        //Found end index
+                        if (endIndex >= 0)
+                        {
+                            var commentRegion = new CommentRegion()
+                            {
+                                Start = offset + indexTags.Index,
+                                Length = tag.Start.Length + endIndex + tag.End.Length
+                            };
+
+                            offset = commentRegion.Start + commentRegion.Length;
+                            text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
+                            comments.Add(commentRegion);
+                            foundTag = true;
+
+                            break;
                         }
                     }
-                    else
-                    {
-                        endIndex = text.Substring(startIndex + currentTag.Start.Length).IndexOf(currentTag.End);
-                    }
 
-                    //Check if found end tag
-                    if (endIndex >= 0)
-                    {
-                        //Add comment
-                        comments.Add(new Comment()
-                        {
-                            Tag = currentTag,
-                            Text = text.Substring(startIndex + currentTag.Start.Length, endIndex - startIndex - currentTag.Start.Length)
-                        });
-
-                        text = text.Substring(endIndex + (currentTag.End.Length > 0 ? currentTag.End.Length : 1));
-                    }
-                    else
-                    {
-                        text = "";
-                    }
-                }
-                else
-                {
-                    text = "";
+                    if (!foundTag) break;
                 }
             }
 
             return comments;
         }
 
-        public virtual TrimComment TrimComment(string comment)
+        private IndexTags GetIndexTags(string text, IEnumerable<ParseTag> tags)
         {
-            foreach (var tag in Tags)
+            var indexTagsDic = new Dictionary<int, IndexTags>();
+            int minIndex = int.MaxValue;
+
+            foreach (var tag in tags)
             {
-                var startIndex = comment.IndexOf(tag.Start);
-                if (startIndex >= 0)
+                var index = text.IndexOf(tag.Start);
+                if (index >= 0 && index <= minIndex)
                 {
-                    //Shif start index
-                    startIndex += tag.Start.Length;
+                    minIndex = index;
 
-                    //Calculate end index
-                    var endIndex = tag.End.Length == 0 ? comment.Length - 1 : comment.IndexOf(tag.End);
-                    if (startIndex >= endIndex)
+                    if (indexTagsDic.ContainsKey(index))
                     {
-                        return new TrimComment()
+                        indexTagsDic[index].Tags.Add(tag);
+                    }
+                    else
+                    {
+                        indexTagsDic.Add(index, new IndexTags()
                         {
-                            OriginText = comment,
-                            LineCount = 0,
-                            TrimedText = ""
-                        };
+                            Index = index,
+                            Tags = new List<ParseTag>()
+                            {
+                                tag
+                            }
+                        });
                     }
-
-                    //Break into lines
-                    var text = comment.Substring(startIndex, endIndex - startIndex);
-                    var lines = text.Split('\n');
-
-                    //Check if single line
-                    if (lines.Length <= 1)
-                    {
-                        return new TrimComment()
-                        {
-                            OriginText = comment,
-                            LineCount = 1,
-                            TrimedText = text.Trim()
-                        };
-                    }
-
-                    //Trim multi line comment
-                    var builder = new StringBuilder();
-
-                    //Add first line
-                    builder.AppendLine(lines[0].Trim());
-
-                    //Add next lines
-                    for (int i = 1; i < lines.Length; i++)
-                    {
-                        builder.AppendLine(lines[i].Trim());
-                    }
-
-                    var trimedText = builder.ToString().TrimEnd();
-                    return new TrimComment()
-                    {
-                        OriginText = comment,
-                        LineCount = CommentHelper.LineCount(trimedText),
-                        TrimedText = trimedText
-                    };
                 }
             }
 
-            return new TrimComment()
-            {
-                OriginText = comment,
-                LineCount = CommentHelper.LineCount(comment),
-                TrimedText = comment
-            };
+            return indexTagsDic.ContainsKey(minIndex) ? indexTagsDic[minIndex] : null;
         }
 
-        public string SimpleTrimComment(string comment)
+        #endregion
+
+        #region InnerMembers
+
+        private class IndexTags
         {
-            var lines = comment.Split('\n');
-            var builder = new StringBuilder();
-
-            //Add first line
-            builder.AppendLine(lines[0].Trim());
-
-            //Add next lines
-            for (int i = 1; i < lines.Length; i++)
-            {
-                builder.AppendLine(lines[i].Trim());
-            }
-            return builder.ToString().TrimEnd();
+            public int Index { get; set; }
+            public List<ParseTag> Tags { get; set; }
         }
+
+        #endregion
     }
 
-    public class Comment
-    {
-        public string Text { get; set; }
-        public CommentTag Tag { get; set; }
-    }
 
-    public class CommentTag
+    public class ParseTag
     {
         public string Start { get; set; }
         public string End { get; set; }

@@ -9,13 +9,13 @@
 //
 //***************************************************************************
 
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Tagging;
 
 namespace CommentTranslator.Support
 {
@@ -131,9 +131,7 @@ namespace CommentTranslator.Support
         /// </summary>
         protected void RaiseTagsChanged(SnapshotSpan span)
         {
-            var handler = TagsChanged;
-            if (handler != null)
-                handler(this, new SnapshotSpanEventArgs(span));
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
         }
 
         private void HandleLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
@@ -183,7 +181,8 @@ namespace CommentTranslator.Support
 
             ITextSnapshot snapshot = spans[0].Snapshot;
 
-            System.Diagnostics.Debug.Assert(snapshot == this._snapshot);
+            if (snapshot != this._snapshot)
+                yield break;
 
             // Since WPF UI objects have state (like mouse hover or animation) and are relatively expensive to create and lay out,
             // this code tries to reuse controls as much as possible.
