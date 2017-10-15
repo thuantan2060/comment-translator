@@ -55,13 +55,13 @@ namespace CommentTranslator.Ardonment
             var currentSnapshot = this._snapshot;
             var entire = new SnapshotSpan(spans[0].Start, spans[spans.Count - 1].End).TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
 
-            //var stringTagSpans = _classificationTag.GetStringTagSpan(spans);
-            //var rangeItems = stringTagSpans.Select(tp => new RangeItem(tp.Span.Start.Position, tp.Span.End.Position));
-            //var ranges = new RangeTree<int, RangeItem>(new RangeItemComparer());
-            //if (rangeItems.Count() > 0)
-            //{
-            //    ranges.Add(rangeItems);
-            //}
+            var stringTagSpans = _classificationTag.GetStringTagSpan(spans);
+            var rangeItems = stringTagSpans.Select(tp => new RangeItem(tp.Span.Start.Position, tp.Span.End.Position));
+            var ranges = new RangeTree<int, RangeItem>(new RangeItemComparer());
+            if (rangeItems.Count() > 0)
+            {
+                ranges.Add(rangeItems);
+            }
 
             //Debug.WriteLine("GetTags: ({0}, {1}) -> {2}/{3}",
             //           entire.Start.Position,
@@ -71,7 +71,7 @@ namespace CommentTranslator.Ardonment
 
             foreach (var region in currentRegions)
             {
-                if (entire.OverlapsWith(new Span(region.Start, region.Length)) /*&& ranges.Query(new Range<int>(region.Start, region.End)).Count == 0*/)
+                if (entire.OverlapsWith(new Span(region.Start, region.Length)) && ranges.Query(new Range<int>(region.Start, region.End)).Count == 0)
                 {
                     var span = new SnapshotSpan(currentSnapshot, region.Start, region.Length);
                     var tag = new CommentTag(span.GetText(), _parser, 200);
