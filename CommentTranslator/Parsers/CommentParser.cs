@@ -83,6 +83,11 @@ namespace CommentTranslator.Parsers
             return GetCommentRegions(snapshot, Tags, startFrom);
         }
 
+        public IEnumerable<CommentRegion> GetCommentRegions(string text, int startFrom = 0)
+        {
+            return GetCommentRegions(text, Tags, startFrom);
+        }
+
         #endregion
 
         #region Functions
@@ -100,54 +105,61 @@ namespace CommentTranslator.Parsers
 
         protected virtual IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, IEnumerable<ParseTag> tags, int startFrom = 0)
         {
-            var comments = new List<CommentRegion>();
             var text = snapshot.GetText().Substring(startFrom);
-            var offset = startFrom;
+            return GetCommentRegions(text, tags, startFrom);
+        }
 
-            while (text.Length > 0)
+        protected virtual IEnumerable<CommentRegion> GetCommentRegions(string text, IEnumerable<ParseTag> tags, int startFrom = 0)
+        {
+            var comments = new List<CommentRegion>();
+            if (!string.IsNullOrEmpty(text))
             {
-                //Find first start tag
-                var indexTags = GetIndexTags(text, tags);
-
-                //Stop if not found tag
-                if (indexTags == null) break;
-
-                //Try for each tag
-                var foundTag = false;
-                foreach (var tag in indexTags.Tags)
+                var offset = startFrom;
+                while (text.Length > 0)
                 {
-                    var trimStart = text.Substring(indexTags.Index + tag.Start.Length);
+                    //Find first start tag
+                    var indexTags = GetIndexTags(text, tags);
 
-                    //Find end index
-                    var endIndex = 0;
-                    if (tag.Start != tag.End)
-                    {
-                        endIndex = string.IsNullOrEmpty(tag.End) ? trimStart.Length : trimStart.IndexOf(tag.End);
-                    }
-                    else
-                    {
-                        endIndex = trimStart.IndexOf(tag.End);
-                    }
+                    //Stop if not found tag
+                    if (indexTags == null) break;
 
-                    //Found end index
-                    if (endIndex >= 0)
+                    //Try for each tag
+                    var foundTag = false;
+                    foreach (var tag in indexTags.Tags)
                     {
-                        var commentRegion = new CommentRegion()
+                        var trimStart = text.Substring(indexTags.Index + tag.Start.Length);
+
+                        //Find end index
+                        var endIndex = 0;
+                        if (tag.Start != tag.End)
                         {
-                            Start = offset + indexTags.Index,
-                            Length = tag.Start.Length + endIndex + tag.End.Length
-                        };
+                            endIndex = string.IsNullOrEmpty(tag.End) ? trimStart.Length : trimStart.IndexOf(tag.End);
+                        }
+                        else
+                        {
+                            endIndex = trimStart.IndexOf(tag.End);
+                        }
 
-                        offset = commentRegion.Start + commentRegion.Length;
-                        text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
-                        comments.Add(commentRegion);
-                        foundTag = true;
+                        //Found end index
+                        if (endIndex >= 0)
+                        {
+                            var commentRegion = new CommentRegion()
+                            {
+                                Start = offset + indexTags.Index,
+                                Length = tag.Start.Length + endIndex + tag.End.Length
+                            };
 
-                        break;
+                            offset = commentRegion.Start + commentRegion.Length;
+                            text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
+                            comments.Add(commentRegion);
+                            foundTag = true;
+
+                            break;
+                        }
                     }
-                }
 
-                if (!foundTag) break;
+                    if (!foundTag) break;
+                }
             }
 
             return comments;

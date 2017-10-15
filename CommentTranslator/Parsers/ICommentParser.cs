@@ -12,6 +12,7 @@ namespace CommentTranslator.Parsers
     public interface ICommentParser
     {
         IEnumerable<CommentRegion> GetCommentRegions(ITextSnapshot snapshot, int startFrom = 0);
+        IEnumerable<CommentRegion> GetCommentRegions(string text, int startFrom = 0);
         Comment GetComment(string commentText);
         TextPositions GetPositions(Comment comment);
     }
