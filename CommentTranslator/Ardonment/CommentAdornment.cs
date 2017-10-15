@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -191,8 +190,6 @@ namespace CommentTranslator.Ardonment
 
         private void Translate(CommentTag tag, bool force = false)
         {
-            Debug.WriteLine("Request translate " + tag.Comment.Content);
-
             //Set translating tag
             _currentTag = tag;
 
@@ -200,13 +197,11 @@ namespace CommentTranslator.Ardonment
             {
                 //Set translating
                 _isTranslating = true;
-                Debug.WriteLine("Translating true");
 
                 //Wait to translate
                 if (tag.TimeWaitAfterChange <= 0)
                 {
                     _isTranslating = false;
-                    Debug.WriteLine("Translating false");
                     StartTranslate(tag);
                 }
                 else
@@ -223,7 +218,6 @@ namespace CommentTranslator.Ardonment
                                 else
                                 {
                                     _isTranslating = false;
-                                    Debug.WriteLine("Translating false");
                                     StartTranslate(tag);
                                 }
                             }
@@ -237,8 +231,6 @@ namespace CommentTranslator.Ardonment
             var comment = tag.Comment;
             if (!string.IsNullOrEmpty(comment.Content) && (_translatedComment == null || comment.Content != _translatedComment.Content))
             {
-                Debug.WriteLine("Start translate " + tag.Comment.Content);
-
                 //Set translated comment
                 _translatedComment = comment;
 
@@ -265,8 +257,6 @@ namespace CommentTranslator.Ardonment
 
         private void TranslateComplete(TranslatedComment comment, Exception error)
         {
-            Debug.WriteLine("Translate complete " + comment.Content);
-
             if (error != null)
             {
                 _textBlock.Foreground = Brushes.Red;

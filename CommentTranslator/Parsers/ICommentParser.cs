@@ -19,6 +19,7 @@ namespace CommentTranslator.Parsers
     public class CommentRegion
     {
         public int Start { get; set; }
-        public int Length { get; set; } 
+        public int Length { get; set; }
+        public int End { get { return Start + Length; } }
     }
 }

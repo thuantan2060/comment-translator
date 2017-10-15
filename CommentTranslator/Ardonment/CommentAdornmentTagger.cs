@@ -59,13 +59,12 @@ namespace CommentTranslator.Ardonment
                 yield break;
 
             var snapshot = spans[0].Snapshot;
-            var mapingTagSpans = _commentTagger.GetTags(spans);
-            var commentTagSpans = ConvertToTagSpan(snapshot, mapingTagSpans);
+            var mappingCommentTagSpans = _commentTagger.GetTags(spans);
+            var commentTagSpans = ConvertToTagSpan(snapshot, mappingCommentTagSpans);
 
             foreach (ITagSpan<CommentTag> dataTagSpan in commentTagSpans)
             {
                 SnapshotSpan adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Start, 0);
-
                 yield return Tuple.Create(adornmentSpan, (PositionAffinity?)PositionAffinity.Successor, dataTagSpan.Tag);
             }
         }
@@ -76,7 +75,7 @@ namespace CommentTranslator.Ardonment
             return true;
         }
 
-        private IEnumerable<ITagSpan<CommentTag>> ConvertToTagSpan(ITextSnapshot snapshot, IEnumerable<IMappingTagSpan<CommentTag>> mappingTagSpans)
+        private IEnumerable<ITagSpan<T>> ConvertToTagSpan<T>(ITextSnapshot snapshot, IEnumerable<IMappingTagSpan<T>> mappingTagSpans) where T : ITag
         {
             if (mappingTagSpans.Count() == 0) yield break;
 
@@ -87,11 +86,11 @@ namespace CommentTranslator.Ardonment
                 {
                     var snapshotSpan = nssc[0];
 
-                    string text = snapshotSpan.GetText();
-                    if (String.IsNullOrWhiteSpace(text))
+                    //string text = snapshotSpan.is.GetText();
+                    if (snapshotSpan.IsEmpty)
                         continue;
 
-                    yield return new TagSpan<CommentTag>(snapshotSpan, mapTagSpan.Tag);
+                    yield return new TagSpan<T>(snapshotSpan, mapTagSpan.Tag);
                 }
             }
         }
