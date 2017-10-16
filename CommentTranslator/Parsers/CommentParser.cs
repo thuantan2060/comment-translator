@@ -63,7 +63,7 @@ namespace CommentTranslator.Parsers
             };
 
             //Get position
-            comment.Position = GetPositions(comment);
+            //comment.Position = GetPositions(comment);
 
             return comment;
         }
@@ -123,6 +123,8 @@ namespace CommentTranslator.Parsers
                     //Stop if not found tag
                     if (indexTags == null) break;
 
+
+
                     //Try for each tag
                     var foundTag = false;
                     foreach (var tag in indexTags.Tags)
@@ -143,14 +145,20 @@ namespace CommentTranslator.Parsers
                         //Found end index
                         if (endIndex >= 0)
                         {
+                            //Find new line start index
+                            var newLineIndex = text.Substring(0, indexTags.Index).LastIndexOf(Environment.NewLine);
+
+                            //Create region
                             var commentRegion = new CommentRegion()
                             {
                                 Start = offset + indexTags.Index,
-                                Length = tag.Start.Length + endIndex + tag.End.Length
+                                Length = tag.Start.Length + endIndex + tag.End.Length,
+                                Text = text.Substring(indexTags.Index, tag.Start.Length + endIndex + tag.End.Length),
+                                Offset = indexTags.Index - (newLineIndex < 0 ? 0 : (newLineIndex + Environment.NewLine.Length))
                             };
 
-                            offset = commentRegion.Start + commentRegion.Length;
-                            text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
+                            offset = commentRegion.Start + commentRegion.Length - (tag.End == Environment.NewLine ? tag.End.Length : 0);
+                            text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + (tag.End != Environment.NewLine ? tag.End.Length : 0)) : "";
                             comments.Add(commentRegion);
                             foundTag = true;
 

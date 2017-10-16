@@ -17,5 +17,13 @@ namespace CommentTranslator.Ardonment
             TimeWaitAfterChange = timeWaitAfterChange;
             Comment = parser.GetComment(text);
         }
+
+        public CommentTag(string text, ICommentParser parser, Comment comment, int timeWaitAfterChange = 0)
+        {
+            Text = text;
+            Parser = parser;
+            TimeWaitAfterChange = timeWaitAfterChange;
+            Comment = comment;
+        }
     }
 }
