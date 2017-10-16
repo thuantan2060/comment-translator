@@ -48,12 +48,12 @@ namespace CommentTranslator.Ardonment
 
         #region Functions
 
-        protected override CommentAdornment CreateAdornment(CommentTag data, SnapshotSpan span)
+        protected override CommentAdornment CreateAdornment(CommentTag data, SnapshotSpan span, SnapshotSpan containSpan)
         {
-            return new CommentAdornment(data, span, _view, _format);
+            return new CommentAdornment(data, span, _view, _format, containSpan);
         }
 
-        protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTag>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
+        protected override IEnumerable<Tuple<SnapshotSpan, PositionAffinity?, CommentTag, SnapshotSpan>> GetAdornmentData(NormalizedSnapshotSpanCollection spans)
         {
             if (spans.Count == 0)
                 yield break;
@@ -65,13 +65,13 @@ namespace CommentTranslator.Ardonment
             foreach (ITagSpan<CommentTag> dataTagSpan in commentTagSpans)
             {
                 SnapshotSpan adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Start, 0);
-                yield return Tuple.Create(adornmentSpan, (PositionAffinity?)PositionAffinity.Successor, dataTagSpan.Tag);
+                yield return Tuple.Create(adornmentSpan, (PositionAffinity?)PositionAffinity.Successor, dataTagSpan.Tag, dataTagSpan.Span);
             }
         }
 
-        protected override bool UpdateAdornment(CommentAdornment adornment, CommentTag data, SnapshotSpan span)
+        protected override bool UpdateAdornment(CommentAdornment adornment, CommentTag data, SnapshotSpan span, SnapshotSpan containSpan)
         {
-            adornment.Update(data, span);
+            adornment.Update(data, span, containSpan);
             return true;
         }
 
