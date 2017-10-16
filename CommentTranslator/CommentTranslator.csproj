@@ -91,9 +91,7 @@
     <Compile Include="Ardonment\TranslatePopupAdornment.cs" />
     <Compile Include="Ardonment\TranslatePopupConnector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Util\CommentHelper.cs" />
     <Compile Include="Util\VsOutputLogger.cs" />
-    <Compile Include="Util\WpfTextViewHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\LICENSE">

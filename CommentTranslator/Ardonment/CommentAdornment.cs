@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,12 +17,14 @@ namespace CommentTranslator.Ardonment
     {
         #region Fields
 
-        private TextBlock _originTextBlock;
+        private Typeface _typeface;
+        private double _fontSize;
         private TextBlock _textBlock;
         private Line _line;
 
         private CommentTag _tag;
         private SnapshotSpan _span;
+        private SnapshotSpan _containSpan;
         private IWpfTextView _view;
         private IEditorFormatMap _format;
 
@@ -33,12 +36,13 @@ namespace CommentTranslator.Ardonment
 
         #region Contructors
 
-        public CommentAdornment(CommentTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format)
+        public CommentAdornment(CommentTag tag, SnapshotSpan span, IWpfTextView textView, IEditorFormatMap format, SnapshotSpan containSpan)
         {
             _tag = tag;
             _span = span;
             _view = textView;
             _format = format;
+            _containSpan = containSpan;
 
             GenerateLayout(tag);
             Translate(tag);
@@ -52,8 +56,12 @@ namespace CommentTranslator.Ardonment
 
         #region Methods
 
-        public void Update(CommentTag tag, SnapshotSpan span)
+        public void Update(CommentTag tag, SnapshotSpan span, SnapshotSpan containSpan)
         {
+            //Set properties
+            _span = span;
+            _containSpan = containSpan;
+
             if (tag.Comment.Content != _tag.Comment.Content || tag.Comment.Line != _tag.Comment.Line)
             {
                 //Refresh layout
@@ -65,7 +73,6 @@ namespace CommentTranslator.Ardonment
 
             //Set properties
             _tag = tag;
-            _span = span;
         }
 
         #endregion
@@ -74,9 +81,6 @@ namespace CommentTranslator.Ardonment
 
         private void GenerateLayout(CommentTag tag)
         {
-            //Create origin textblock
-            _originTextBlock = new TextBlock();
-
             //Draw lable
             _textBlock = new TextBlock()
             {
@@ -91,23 +95,16 @@ namespace CommentTranslator.Ardonment
             _line.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
 
             //Get format
-            var typeface = _format.GetTypeface();
-            var fontSize = _format.GetFontSize();
-            if (typeface != null)
+            _typeface = _format.GetTypeface();
+            _fontSize = _format.GetFontSize();
+            if (_typeface != null)
             {
-                //Set format for origin text block
-                _originTextBlock.FontFamily = typeface.FontFamily;
-                _originTextBlock.FontStyle = typeface.Style;
-                _originTextBlock.FontStretch = typeface.Stretch;
-                _originTextBlock.FontWeight = typeface.Weight;
-                _originTextBlock.FontSize = fontSize;
-
                 //Set format for text block
-                _textBlock.FontFamily = typeface.FontFamily;
-                _textBlock.FontStyle = typeface.Style;
-                _textBlock.FontStretch = typeface.Stretch;
-                _textBlock.FontWeight = typeface.Weight;
-                _textBlock.FontSize = fontSize;
+                _textBlock.FontFamily = _typeface.FontFamily;
+                _textBlock.FontStyle = _typeface.Style;
+                _textBlock.FontStretch = _typeface.Stretch;
+                _textBlock.FontWeight = _typeface.Weight;
+                _textBlock.FontSize = _fontSize;
             }
 
             //Refresh layout
@@ -130,45 +127,42 @@ namespace CommentTranslator.Ardonment
                 this.Visibility = Visibility.Visible;
             }
 
-            //Set text
-            _originTextBlock.Text = comment.Origin.TrimEnd();
-
             //Measure size
-            _originTextBlock.Measure(new Size(double.MaxValue, double.MaxValue));
-            _textBlock.Measure(new Size(double.MaxValue, double.MaxValue));
+            var format = MeasureFormat(comment.Origin);
 
+            //Refresh for specify layout
             switch (comment.Position)
             {
                 case TextPositions.Bottom:
-                    RefreshLayoutBottom(comment);
+                    RefreshLayoutBottom(comment, format);
                     break;
                 case TextPositions.Right:
-                    RefreshLayoutRight(comment);
+                    RefreshLayoutRight(comment, format);
                     break;
             }
         }
 
-        private void RefreshLayoutBottom(Comment comment)
+        private void RefreshLayoutBottom(Comment comment, FormattedText format)
         {
             //Set line position
             _line.X1 = _line.X2 = 4;
             _line.Y1 = 4;
-            _line.Y2 = _originTextBlock.DesiredSize.Height + _line.Y1 + 1;
+            _line.Y2 = format.Height + _line.Y1 + 1;
 
             //Set text box position
             Canvas.SetTop(_textBlock, 4);
             Canvas.SetLeft(_textBlock, 10);
 
             //Set size of canvas
-            this.Height = _view.GetLineHeight();
+            this.Height = GetLineHeight(_view);
             this.Width = 0;
         }
 
-        private void RefreshLayoutRight(Comment comment)
+        private void RefreshLayoutRight(Comment comment, FormattedText format)
         {
             //Calculate top left position
-            var top = -_view.GetLineHeight() + 5;
-            var left = _originTextBlock.DesiredSize.Width + 20;
+            var top = -GetLineHeight(_view) + 5;
+            var left = format.Width + 20;
 
             //Set position of text box
             Canvas.SetTop(_textBlock, top);
@@ -177,11 +171,47 @@ namespace CommentTranslator.Ardonment
             //Set position of line
             _line.X1 = _line.X2 = left - 5;
             _line.Y1 = top - 1;
-            _line.Y2 = Math.Max(_textBlock.DesiredSize.Height, _originTextBlock.DesiredSize.Height) + _line.Y1 + 1;
+            _line.Y2 = format.Height + _line.Y1 + 1;
 
             //Set size of canvas
             this.Height = 0;
             this.Width = 0;
+        }
+
+        private FormattedText MeasureFormat(string candidate)
+        {
+            if (_typeface != null)
+            {
+                return new FormattedText(
+                                        candidate,
+                                        CultureInfo.CurrentUICulture,
+                                        FlowDirection.LeftToRight,
+                                        _typeface,
+                                        _fontSize,
+                                        Brushes.Black);
+            }
+            else
+            {
+                return new FormattedText(
+                                       candidate,
+                                       CultureInfo.CurrentUICulture,
+                                       FlowDirection.LeftToRight,
+                                       new Typeface(_textBlock.FontFamily, _textBlock.FontStyle, _textBlock.FontWeight, _textBlock.FontStretch),
+                                       _textBlock.FontSize,
+                                       Brushes.Black);
+            }
+        }
+
+        private static double GetLineHeight(IWpfTextView view)
+        {
+            var height = 20d;
+            try
+            {
+                height = view.LineHeight;
+            }
+            catch { }
+
+            return height;
         }
 
         #endregion

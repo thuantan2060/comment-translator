@@ -163,7 +163,6 @@ namespace CommentTranslator.Ardonment
             return new SnapshotSpan(snapshot, region.Start, region.Length);
         }
 
-
         #endregion
 
         #region Events
