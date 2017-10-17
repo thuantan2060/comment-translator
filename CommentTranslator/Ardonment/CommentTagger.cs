@@ -5,7 +5,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 using RangeTree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace CommentTranslator.Ardonment
 {
@@ -49,6 +51,8 @@ namespace CommentTranslator.Ardonment
 
         public IEnumerable<ITagSpan<CommentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            Debug.WriteLine("===============================================================");
+
             if (!CommentTranslatorPackage.Settings.AutoTranslateComment || spans.Count == 0 || _parser == null)
                 yield break;
 
@@ -78,28 +82,35 @@ namespace CommentTranslator.Ardonment
                     var span = new SnapshotSpan(currentSnapshot, region.Start, region.Length);
 
                     //Merge comment
-                    var comment = new Comment();
-                    for (int i =0;i< region.ChildRegions.Count; i++)
+                    var childComments = region.ChildRegions.Select(r => _parser.GetComment(r.Text));
+                    var comment = new Comment()
                     {
-                        var childComment = _parser.GetComment(region.ChildRegions[i].Text);
+                        Origin = region.Text,
+                        MarginTop = childComments.First().MarginTop
+                    };
 
-                        if (i == 0)
-                        {
-                            comment.MarginTop = childComment.MarginTop;
-                        }
-
-                        comment.Origin += childComment.Origin;
-                        comment.Content += childComment.Content + (childComment.Origin.EndsWith(Environment.NewLine) ? Environment.NewLine : "");
+                    var builder = new StringBuilder();
+                    foreach(var childComment in childComments)
+                    {
                         comment.Line += childComment.Line;
-
-                        if (i == region.ChildRegions.Count - 1)
+                        if (childComment.Origin.EndsWith(Environment.NewLine))
                         {
-                            comment.Position = _parser.GetPositions(comment);
+                            builder.AppendLine(childComment.Content);
+                        }
+                        else
+                        {
+                            builder.Append(childComment.Content);
                         }
                     }
 
+                    comment.Content = builder.ToString().Trim();
+                    comment.Position = _parser.GetPositions(comment);
+                    comment.Regions = region.ChildRegions;
+
                     var tag = new CommentTag(comment.Origin, _parser, comment, 200);
                     yield return new TagSpan<CommentTag>(span, tag);
+
+                    Debug.WriteLine($"Comment Tag: ({span.Start.Position},{span.End.Position})");
                 }
             }
         }
@@ -204,6 +215,7 @@ namespace CommentTranslator.Ardonment
                     {
                         mergedRegion.Length += region.Length;
                         mergedRegion.TotalOffset += region.Offset;
+                        mergedRegion.Text += region.Text;
                         mergedRegion.ChildRegions.Add(region);
                     }
                     else
@@ -276,6 +288,7 @@ namespace CommentTranslator.Ardonment
             {
                 Start = region.Start;
                 Length = region.Length;
+                Text = region.Text;
                 ChildRegions = new List<CommentRegion>() { region };
             }
         }

@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 
@@ -205,11 +206,15 @@ namespace CommentTranslator.Support
                 SnapshotSpan containSpan = spanDataPair.Item4;
                 if (_adornmentCache.TryGetValue(snapshotSpan, out adornment))
                 {
+                    Debug.WriteLine($"Update: ({snapshotSpan.Start.Position},{snapshotSpan.End.Position}), \"{snapshotSpan.GetText()}\")");
+
                     if (UpdateAdornment(adornment, adornmentData, snapshotSpan, containSpan))
                         toRemove.Remove(snapshotSpan);
                 }
                 else
                 {
+                    Debug.WriteLine($"Insert: ({snapshotSpan.Start.Position},{snapshotSpan.End.Position}), \"{snapshotSpan.GetText()}\")");
+
                     adornment = CreateAdornment(adornmentData, snapshotSpan, containSpan);
 
                     if (adornment == null)
@@ -232,7 +237,11 @@ namespace CommentTranslator.Support
             }
 
             foreach (var snapshotSpan in toRemove)
+            {
                 _adornmentCache.Remove(snapshotSpan);
+
+                Debug.WriteLine($"Remove: ({snapshotSpan.Start.Position},{snapshotSpan.End.Position}), \"{snapshotSpan.GetText()}\")");
+            }
         }
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;

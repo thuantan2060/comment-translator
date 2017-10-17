@@ -13,5 +13,6 @@ namespace CommentTranslator.Parsers
         public TextPositions Position { get; set; }
         public int Line { get; set; }
         public int MarginTop { get; set; }
+        public IEnumerable<CommentRegion> Regions { get; set; }
     }
 }

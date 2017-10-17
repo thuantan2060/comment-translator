@@ -123,8 +123,6 @@ namespace CommentTranslator.Parsers
                     //Stop if not found tag
                     if (indexTags == null) break;
 
-
-
                     //Try for each tag
                     var foundTag = false;
                     foreach (var tag in indexTags.Tags)
@@ -147,6 +145,7 @@ namespace CommentTranslator.Parsers
                         {
                             //Find new line start index
                             var newLineIndex = text.Substring(0, indexTags.Index).LastIndexOf(Environment.NewLine);
+                            var startLineIndex = newLineIndex >= 0 ? (newLineIndex + Environment.NewLine.Length) : 0;
 
                             //Create region
                             var commentRegion = new CommentRegion()
@@ -154,11 +153,21 @@ namespace CommentTranslator.Parsers
                                 Start = offset + indexTags.Index,
                                 Length = tag.Start.Length + endIndex + tag.End.Length,
                                 Text = text.Substring(indexTags.Index, tag.Start.Length + endIndex + tag.End.Length),
-                                Offset = indexTags.Index - (newLineIndex < 0 ? 0 : (newLineIndex + Environment.NewLine.Length))
+                                Offset = indexTags.Index - startLineIndex
                             };
 
-                            offset = commentRegion.Start + commentRegion.Length - (tag.End == Environment.NewLine ? tag.End.Length : 0);
-                            text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + (tag.End != Environment.NewLine ? tag.End.Length : 0)) : "";
+                            //Set offset and Cut text
+                            if (tag.End == Environment.NewLine)
+                            {
+                                offset = commentRegion.Start + commentRegion.Length - tag.End.Length;
+                                text = endIndex < trimStart.Length ? trimStart.Substring(endIndex) : "";
+                            }
+                            else
+                            {
+                                offset = commentRegion.Start + commentRegion.Length;
+                                text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
+                            }
+
                             comments.Add(commentRegion);
                             foundTag = true;
 
@@ -218,7 +227,6 @@ namespace CommentTranslator.Parsers
 
         #endregion
     }
-
 
     public class ParseTag
     {
