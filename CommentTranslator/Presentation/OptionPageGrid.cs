@@ -24,7 +24,7 @@ namespace CommentTranslator.Option
         [Category("Translate")]
         [DisplayName("Auto detect language")]
         [Description("Auto detect language translate from")]
-        public bool AutoDetect { get; set; } = false;
+        public bool AutoDetect { get; set; } = true;
 
         [Category("Translate")]
         [DisplayName("Auto translate comment")]
