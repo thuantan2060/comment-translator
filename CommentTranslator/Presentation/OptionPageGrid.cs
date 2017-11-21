@@ -29,7 +29,7 @@ namespace CommentTranslator.Option
         [Category("Translate")]
         [DisplayName("Auto translate comment")]
         [Description("Auto translate comment in you open file")]
-        public bool AutoTranslateComment { get; set; } = true;
+        public bool AutoTranslateComment { get; set; } = false;
 
         protected override void OnApply(PageApplyEventArgs e)
         {
