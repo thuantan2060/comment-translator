@@ -12,6 +12,10 @@ Extension of visual studio 2017 that automatic translate comment in you open fil
 
 See the [change log](CHANGELOG.md) for changes and road map.
 
+## Server side
+
+You can found the API using for this project here [LINK](https://github.com/thuantan2060/comment-translator-api). But the library that I'm using to translate was deprecated and server will not going to working. If you want please make your own server. Thank you! 
+
 ## Features
 
 - Auto translate comment in opening file.
