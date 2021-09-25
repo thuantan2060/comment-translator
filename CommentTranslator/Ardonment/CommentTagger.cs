@@ -5,7 +5,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 using RangeTree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace CommentTranslator.Ardonment
 {
@@ -15,7 +17,8 @@ namespace CommentTranslator.Ardonment
 
         private ITextBuffer _buffer;
         private ITextSnapshot _snapshot;
-        private IEnumerable<CommentRegion> _regions;
+        private List<CommentRegion> _regions;
+        private List<MergeCommentRegion> _mergeRegions;
         private ICommentParser _parser;
         private ITagAggregator<IClassificationTag> _classificationTag;
 
@@ -48,6 +51,8 @@ namespace CommentTranslator.Ardonment
 
         public IEnumerable<ITagSpan<CommentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            Debug.WriteLine("===============================================================");
+
             if (!CommentTranslatorPackage.Settings.AutoTranslateComment || spans.Count == 0 || _parser == null)
                 yield break;
 
@@ -69,14 +74,43 @@ namespace CommentTranslator.Ardonment
             //           currentRegions.Where(x => x.Start <= entire.Start && x.Length + x.Start >= entire.End).Count(),
             //           currentRegions.Count());
 
-            foreach (var region in currentRegions)
+            foreach (var region in _mergeRegions)
             {
                 if (entire.OverlapsWith(new Span(region.Start, region.Length)) && ranges.Query(new Range<int>(region.Start, region.End)).Count > 0)
                 {
+                    //Create span
                     var span = new SnapshotSpan(currentSnapshot, region.Start, region.Length);
-                    var tag = new CommentTag(span.GetText(), _parser, 200);
 
+                    //Merge comment
+                    var childComments = region.ChildRegions.Select(r => _parser.GetComment(r.Text));
+                    var comment = new Comment()
+                    {
+                        Origin = region.Text,
+                        MarginTop = childComments.First().MarginTop
+                    };
+
+                    var builder = new StringBuilder();
+                    foreach(var childComment in childComments)
+                    {
+                        comment.Line += childComment.Line;
+                        if (childComment.Origin.EndsWith(Environment.NewLine))
+                        {
+                            builder.AppendLine(childComment.Content);
+                        }
+                        else
+                        {
+                            builder.Append(childComment.Content);
+                        }
+                    }
+
+                    comment.Content = builder.ToString().Trim();
+                    comment.Position = _parser.GetPositions(comment);
+                    comment.Regions = region.ChildRegions;
+
+                    var tag = new CommentTag(comment.Origin, _parser, comment, 200);
                     yield return new TagSpan<CommentTag>(span, tag);
+
+                    Debug.WriteLine($"Comment Tag: ({span.Start.Position},{span.End.Position})");
                 }
             }
         }
@@ -148,6 +182,7 @@ namespace CommentTranslator.Ardonment
 
             this._snapshot = newSnapshot;
             this._regions = newRegions;
+            this._mergeRegions = MergeRegions(newRegions);
 
             if (changeStart <= changeEnd)
             {
@@ -161,6 +196,37 @@ namespace CommentTranslator.Ardonment
         private static SnapshotSpan AsSnapshotSpan(CommentRegion region, ITextSnapshot snapshot)
         {
             return new SnapshotSpan(snapshot, region.Start, region.Length);
+        }
+
+        private static List<MergeCommentRegion> MergeRegions(List<CommentRegion> regions)
+        {
+            var mergedRegions = new List<MergeCommentRegion>();
+
+            if (regions.Count > 0)
+            {
+                var mergedRegion = new MergeCommentRegion(regions[0]);
+                mergedRegions.Add(mergedRegion);
+
+                for (int i = 1; i < regions.Count; i++)
+                {
+                    var region = regions[i];
+
+                    if (mergedRegion.End + mergedRegion.TotalOffset >= region.Start - region.Offset)
+                    {
+                        mergedRegion.Length += region.Length;
+                        mergedRegion.TotalOffset += region.Offset;
+                        mergedRegion.Text += region.Text;
+                        mergedRegion.ChildRegions.Add(region);
+                    }
+                    else
+                    {
+                        mergedRegion = new MergeCommentRegion(region);
+                        mergedRegions.Add(mergedRegion);
+                    }
+                }
+            }
+
+            return mergedRegions;
         }
 
         #endregion
@@ -200,6 +266,7 @@ namespace CommentTranslator.Ardonment
                 return x.Range.CompareTo(y.Range);
             }
         }
+
         private class RangeItem : IRangeProvider<int>
         {
             public Range<int> Range { get; private set; }
@@ -209,6 +276,20 @@ namespace CommentTranslator.Ardonment
             public RangeItem(int start, int end)
             {
                 Range = new Range<int>(start, end);
+            }
+        }
+
+        private class MergeCommentRegion : CommentRegion
+        {
+            public List<CommentRegion> ChildRegions { get; set; }
+            public int TotalOffset { get; set; }
+
+            public MergeCommentRegion(CommentRegion region)
+            {
+                Start = region.Start;
+                Length = region.Length;
+                Text = region.Text;
+                ChildRegions = new List<CommentRegion>() { region };
             }
         }
 

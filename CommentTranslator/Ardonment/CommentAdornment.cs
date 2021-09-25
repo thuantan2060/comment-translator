@@ -147,14 +147,14 @@ namespace CommentTranslator.Ardonment
             //Set line position
             _line.X1 = _line.X2 = 4;
             _line.Y1 = 4;
-            _line.Y2 = format.Height + _line.Y1 + 1;
+            _line.Y2 = format.Height + _line.Y1;
 
             //Set text box position
             Canvas.SetTop(_textBlock, 4);
             Canvas.SetLeft(_textBlock, 10);
 
             //Set size of canvas
-            this.Height = GetLineHeight(_view);
+            this.Height = format.Height;
             this.Width = 0;
         }
 
@@ -171,7 +171,7 @@ namespace CommentTranslator.Ardonment
             //Set position of line
             _line.X1 = _line.X2 = left - 5;
             _line.Y1 = top - 1;
-            _line.Y2 = format.Height + _line.Y1 + 1;
+            _line.Y2 = format.Height + _line.Y1;
 
             //Set size of canvas
             this.Height = 0;

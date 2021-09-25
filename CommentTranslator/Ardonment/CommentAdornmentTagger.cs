@@ -64,7 +64,17 @@ namespace CommentTranslator.Ardonment
 
             foreach (ITagSpan<CommentTag> dataTagSpan in commentTagSpans)
             {
-                SnapshotSpan adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Start, 0);
+                SnapshotSpan adornmentSpan;
+                if (dataTagSpan.Tag.Comment.Position == Parsers.TextPositions.Bottom)
+                {
+                    var lastRegion = dataTagSpan.Tag.Comment.Regions.Last();
+                    adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Snapshot, lastRegion.Start, 0);
+                }
+                else
+                {
+                    adornmentSpan = new SnapshotSpan(dataTagSpan.Span.Start, 0);
+                }
+
                 yield return Tuple.Create(adornmentSpan, (PositionAffinity?)PositionAffinity.Successor, dataTagSpan.Tag, dataTagSpan.Span);
             }
         }

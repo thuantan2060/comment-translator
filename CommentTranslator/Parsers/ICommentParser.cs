@@ -22,5 +22,7 @@ namespace CommentTranslator.Parsers
         public int Start { get; set; }
         public int Length { get; set; }
         public int End { get { return Start + Length; } }
+        public string Text { get; set; }
+        public int Offset { get; set; }
     }
 }

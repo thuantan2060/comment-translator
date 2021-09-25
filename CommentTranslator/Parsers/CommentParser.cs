@@ -63,7 +63,7 @@ namespace CommentTranslator.Parsers
             };
 
             //Get position
-            comment.Position = GetPositions(comment);
+            //comment.Position = GetPositions(comment);
 
             return comment;
         }
@@ -143,14 +143,31 @@ namespace CommentTranslator.Parsers
                         //Found end index
                         if (endIndex >= 0)
                         {
+                            //Find new line start index
+                            var newLineIndex = text.Substring(0, indexTags.Index).LastIndexOf(Environment.NewLine);
+                            var startLineIndex = newLineIndex >= 0 ? (newLineIndex + Environment.NewLine.Length) : 0;
+
+                            //Create region
                             var commentRegion = new CommentRegion()
                             {
                                 Start = offset + indexTags.Index,
-                                Length = tag.Start.Length + endIndex + tag.End.Length
+                                Length = tag.Start.Length + endIndex + tag.End.Length,
+                                Text = text.Substring(indexTags.Index, tag.Start.Length + endIndex + tag.End.Length),
+                                Offset = indexTags.Index - startLineIndex
                             };
 
-                            offset = commentRegion.Start + commentRegion.Length;
-                            text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
+                            //Set offset and Cut text
+                            if (tag.End == Environment.NewLine)
+                            {
+                                offset = commentRegion.Start + commentRegion.Length - tag.End.Length;
+                                text = endIndex < trimStart.Length ? trimStart.Substring(endIndex) : "";
+                            }
+                            else
+                            {
+                                offset = commentRegion.Start + commentRegion.Length;
+                                text = endIndex < trimStart.Length ? trimStart.Substring(endIndex + tag.End.Length) : "";
+                            }
+
                             comments.Add(commentRegion);
                             foundTag = true;
 
@@ -210,7 +227,6 @@ namespace CommentTranslator.Parsers
 
         #endregion
     }
-
 
     public class ParseTag
     {
